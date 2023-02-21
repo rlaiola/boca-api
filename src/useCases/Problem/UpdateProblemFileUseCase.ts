@@ -1,3 +1,23 @@
+//========================================================================
+// Copyright Universidade Federal do Espirito Santo (Ufes)
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// 
+// This program is released under license GNU GPL v3+ license.
+//
+//========================================================================
+
 import { container, inject, injectable } from "tsyringe";
 import { createHash } from "node:crypto";
 import { UploadedFile } from "express-fileupload";
@@ -53,32 +73,34 @@ class UpdateProblemFileUseCase {
     }
 
     const data = new Uint8Array(arrayBuffer);
-    hash = createHash("SHA1").update(data);
+    hash = createHash("SHA-256").update(data);
 
     oid = await this.problemsRepository.createBlob(arrayBuffer);
 
-    const problem = new Problem();
-    problem.contestnumber = contestnumber;
-    problem.problemnumber = problemnumber;
-    problem.problemname = existingProblem.problemname;
-    problem.probleminputfilename = probleminputfilename;
-    problem.probleminputfile = oid;
-    problem.fake = existingProblem.fake;
-    problem.problemcolorname = existingProblem.problemcolorname;
-    problem.problemcolor = existingProblem.problemcolor;
-
-    problem.probleminputfilehash = hash.digest("hex");
-
-    problem.problemfullname =
+    const problemfullname =
       existingProblem.problemfullname !== undefined
         ? existingProblem.problemfullname
         : "";
 
-    problem.problembasefilename =
+    const problembasefilename =
       existingProblem.problembasefilename != null
         ? existingProblem.problembasefilename
         : undefined;
 
+    const problem = new Problem(
+      contestnumber,
+      problemnumber,
+      existingProblem.problemname,
+      problemfullname,
+      problembasefilename,
+      probleminputfilename,
+      oid,
+      hash.digest("hex"),
+      existingProblem.fake,
+      existingProblem.problemcolorname,
+      existingProblem.problemcolor
+    );
+    
     await this.problemValidator.isValid(problem);
 
     const updatedProblem = await this.problemsRepository.update({ ...problem });

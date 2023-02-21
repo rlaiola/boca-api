@@ -1,22 +1,37 @@
+//========================================================================
+// Copyright Universidade Federal do Espirito Santo (Ufes)
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// 
+// This program is released under license GNU GPL v3+ license.
+//
+//========================================================================
+
 import { expect } from "chai";
 import request from "supertest";
 import { createHash } from "crypto";
 
 import { URL } from "../utils/URL";
-
 import { getToken } from "../utils/common";
 
 import createContest1 from "../entities/Contest/UseCases/createContest1.json";
 import updateContest1 from "../entities/Contest/UseCases/updateContest1.json";
-
 import createSite1 from "../entities/Site/UseCases/createSite1.json";
-
 import createUserAdmin from "../entities/User/UseCases/createUserAdmin.json";
 import createUserTime1 from "../entities/User/UseCases/createUserTime1.json";
-
 import createLangC from "../entities/Lang/UseCases/createLangC.json";
 import createLangJava from "../entities/Lang/UseCases/createLangJava.json";
-
 import createAnswer0 from "../entities/Answer/UseCases/createAnswer0.json";
 import createAnswer1 from "../entities/Answer/UseCases/createAnswer1.json";
 import createAnswer2 from "../entities/Answer/UseCases/createAnswer2.json";
@@ -26,10 +41,8 @@ import createAnswer5 from "../entities/Answer/UseCases/createAnswer5.json";
 import createAnswer6 from "../entities/Answer/UseCases/createAnswer6.json";
 import createAnswer7 from "../entities/Answer/UseCases/createAnswer7.json";
 import createAnswer8 from "../entities/Answer/UseCases/createAnswer8.json";
-
 import createProblem1 from "../entities/Problem/UseCases/createProblem1.json";
 import createProblem2 from "../entities/Problem/UseCases/createProblem2.json";
-
 import createRun1 from "../entities/Run/UseCases/createRun1.json";
 
 describe("Fluxo 1", () => {
