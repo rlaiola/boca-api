@@ -21,7 +21,7 @@
 import { Router } from "express";
 import swaggerUi from "swagger-ui-express";
 
-import { AnswersRoutes } from "./answers.routes";
+import { answersRoutes } from "./answers.routes";
 import { contestsRoutes } from "./contests.routes";
 import { healthCheckRoutes } from "./healthCheck.routes";
 import { langRoutes } from "./lang.routes";
@@ -35,7 +35,7 @@ import { swaggerOptions } from "../swagger";
 
 const router = Router();
 
-router.use("/api", AnswersRoutes);
+router.use("/api", answersRoutes);
 router.use("/api", contestsRoutes);
 router.use("/api", healthCheckRoutes);
 router.use("/api", langRoutes);
