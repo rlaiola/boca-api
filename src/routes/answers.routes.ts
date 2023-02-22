@@ -26,11 +26,11 @@ import { UserType } from "../shared/definitions/UserType";
 
 import { AnswerController } from "../useCases/Answer/AnswerController";
 
-const AnswersRoutes = Router();
+const answersRoutes = Router();
 
 const answerController = new AnswerController();
 
-AnswersRoutes.get(
+answersRoutes.get(
   "/contest/:id_c/answer",
   authenticate([
     UserType.ADMIN, // TODO Deve resgatar apenas Answers do Contest ao qual o admin pertence
@@ -39,7 +39,7 @@ AnswersRoutes.get(
   ]),
   answerController.listAll
 );
-AnswersRoutes.get(
+answersRoutes.get(
   "/contest/:id_c/answer/:id_a",
   authenticate([
     UserType.ADMIN, // TODO Deve resgatar apenas uma Answer do Contest ao qual o admin pertence
@@ -48,21 +48,21 @@ AnswersRoutes.get(
   ]),
   answerController.getOne
 );
-AnswersRoutes.post(
+answersRoutes.post(
   "/contest/:id_c/answer",
   authenticate([
     UserType.ADMIN, // TODO Deve resgatar apenas Answers do Contest ao qual o admin pertence
   ]),
   answerController.create
 );
-AnswersRoutes.put(
+answersRoutes.put(
   "/contest/:id_c/answer/:id_a",
   authenticate([
     UserType.ADMIN, // TODO Deve resgatar apenas Answers do Contest ao qual o admin pertence
   ]),
   answerController.update
 );
-AnswersRoutes.delete(
+answersRoutes.delete(
   "/contest/:id_c/answer/:id_a",
   authenticate([
     UserType.ADMIN, // TODO Deve resgatar apenas Answers do Contest ao qual o admin pertence
@@ -70,4 +70,4 @@ AnswersRoutes.delete(
   answerController.delete
 );
 
-export { AnswersRoutes };
+export { answersRoutes };
