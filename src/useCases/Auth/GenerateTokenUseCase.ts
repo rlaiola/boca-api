@@ -1,5 +1,25 @@
+//========================================================================
+// Copyright Universidade Federal do Espirito Santo (Ufes)
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// 
+// This program is released under license GNU GPL v3+ license.
+//
+//========================================================================
+
 import { inject, injectable } from "tsyringe";
-import { createHash, generateKeyPairSync } from "crypto";
+import { createHash } from "crypto";
 import jwt from "jsonwebtoken";
 import * as fs from "fs";
 
@@ -8,6 +28,7 @@ import { ApiError } from "../../errors/ApiError";
 import { IUsersRepository } from "../../repositories/IUsersRepository";
 import { IContestsRepository } from "../../repositories/IContestsRepository";
 import { ISitesRepository } from "../../repositories/ISitesRepository";
+
 import { AuthPayload } from "../../shared/definitions/AuthPayload";
 import { UserType } from "../../shared/definitions/UserType";
 
@@ -28,124 +49,143 @@ class GenerateTokenUseCase {
   ) {}
 
   async execute({ name, saltedPassword }: IRequest): Promise<string> {
-    // Verifica ou cria par de chaves RSA
-    const secretsDir = "./secrets";
-    if (!fs.existsSync(secretsDir)) {
-      fs.mkdirSync(secretsDir);
+    // missing name or password query parameter in request
+    if (name === undefined || saltedPassword === undefined) {
+      console.log("Missing user name or password parameter");
+      throw ApiError.badRequest("Missing user name or password parameter");
     }
 
-    const privateKeyPath = secretsDir + "/private.key";
-    const publicKeyPath = secretsDir + "/public.key";
-
-    if (!fs.existsSync(privateKeyPath) || !fs.existsSync(publicKeyPath)) {
-      const keyPair = generateKeyPairSync("rsa", {
-        modulusLength: 2048,
-        publicKeyEncoding: {
-          type: "spki",
-          format: "pem",
-        },
-        privateKeyEncoding: {
-          type: "pkcs8",
-          format: "pem",
-        },
-      });
-      fs.writeFileSync(privateKeyPath, keyPair.privateKey);
-      fs.writeFileSync(publicKeyPath, keyPair.publicKey);
-    }
-
-    // Valida formato da hash SHA256
+    // check password hash SHA256 format
     const regexExp = /^[a-f0-9]{64}$/;
     if (regexExp.test(saltedPassword) != true) {
-      throw ApiError.badRequest("Password hash is invalid");
+      console.log("Invalid password format");
+      throw ApiError.badRequest("Invalid password format");
     }
 
+    // salt must be the same used to create password hash
+    const salt = process.env.PASSWORD_SALT;
     let contest, site, user;
 
-    // Usuário system deve sempre ser capaz de realizar login
-    if (name === "system") {
-      contest = await this.contestsRepository.getById(0);
-      if (contest === undefined) {
-        throw ApiError.notFound("Fake contest not found");
-      }
+    // try to login in fake contest first
+    contest = await this.contestsRepository.getById(0);
+    if (contest !== undefined) {
+      console.log("Fake contest found");
 
+      // look for local site
       site = await this.sitesRepository.getById(
         contest.contestnumber,
         contest.contestlocalsite
       );
-      if (site === undefined) {
-        throw ApiError.inconsistency("Fake site not found");
-      }
+      if (site !== undefined) {
+        console.log("Local site of fake contest found");
 
-      user = await this.usersRepository.findByName(
-        contest.contestnumber,
-        site.sitenumber,
-        UserType.SYSTEM
-      );
-      if (user === undefined) {
-        throw ApiError.notFound('User "system" not found');
+        // look for user with name
+        user = await this.usersRepository.findByName(
+          contest.contestnumber,
+          site.sitenumber,
+          name
+        );
+        if (user !== undefined) {
+          console.log(`'${name}' user in local site of fake contest found: but is of system type?`);
+
+          if (user.usertype === UserType.SYSTEM) {
+            console.log(`'${name}' user of system type found in local site of fake contest`);
+
+            const hashedPassword = user.userpassword != undefined ? user.userpassword : "";
+            const saltedHash = createHash("sha256")
+                                 .update(hashedPassword + salt)
+                                 .digest("hex");
+
+            if (saltedHash === saltedPassword) {
+              console.log(`'${name}' user of system type authenticated in local site of fake contest`);
+            }
+            else {
+              console.log(`'${name}' user of system type could not authenticate in local site of fake contest: incorrect password`);
+
+              // try to login as no system type user if undefined
+              user = undefined;
+            }
+          }
+          // try to login as no system type user if undefined
+          else {
+            console.log(`'name' user of system type not found in local site of fake contest`);
+
+            user  = undefined;
+          }
+        }
+        else {
+          console.log(`'${name}' user not found in local site of fake contest`);
+        }
       }
-    } else {
-      // Checa se existe um Contest ativo
+      else {
+        console.log("Local site of fake contest not found");
+      }
+    }
+    else {
+      console.log("Fake contest not found");
+    }
+
+    // try to login as no system type user if user still undefined
+    if (user === undefined) {
       contest = await this.contestsRepository.getActive();
-      if (contest === undefined) {
-        throw ApiError.notFound("There is no active contest");
-      }
 
-      // Checa se o Site ativo desse Contest existe
-      site = await this.sitesRepository.getById(
-        contest.contestnumber,
-        contest.contestlocalsite
-      );
-      if (site === undefined) {
-        throw ApiError.inconsistency(
-          `Local site of ID ${contest.contestlocalsite}` +
-            ` specified by contest "${contest.contestname}"` +
-            ` of ID ${contest.contestnumber} was not found`
+      if (contest !== undefined) {
+        console.log(`Active contest (${contest.contestnumber}) found`);
+
+        // look for local site
+        site = await this.sitesRepository.getById(
+          contest.contestnumber,
+          contest.contestlocalsite
         );
+        if (site !== undefined) {
+          console.log(`Local site (${contest.contestlocalsite}) of active contest (${contest.contestnumber}) found`);
+
+          // look for user with name
+          user = await this.usersRepository.findByName(
+            contest.contestnumber,
+            site.sitenumber,
+            name
+          );
+          if (user !== undefined) {
+            console.log(`'${name}' user found in local site (${site.sitenumber}) of active contest (${contest.contestnumber})`);
+
+            // the hash of team type users start with a "!"
+            const hashedPassword = user.usertype === UserType.TEAM ?
+                                     user.userpassword?.replace("!", "") : 
+                                     user.userpassword;
+            const saltedHash = createHash("sha256")
+                                 .update( (hashedPassword !== undefined ? 
+                                             hashedPassword : "") + salt )
+                                 .digest("hex");
+
+            if (saltedHash == saltedPassword) {
+              console.log(`'${name}' user authenticated in local site (${site.sitenumber}) of active contest (${contest.contestnumber})`);
+            }
+            else {
+              console.log(`'${name}' user could not authenticate in local site (${site.sitenumber}) of active contest (${contest.contestnumber}): incorrect password`);
+
+              // try to login as no system type user if undefined
+              user = undefined;
+            }
+          }
+          else {
+            console.log(`'${name}' user not found in local site (${site.sitenumber}) of active contest (${contest.contestnumber})`);
+          }
+        }
+        else {
+          console.log("Local site of active contest not found");
+        }
       }
-
-      // Busca usuário com o nome recebido nesse Contest e Site
-      user = await this.usersRepository.findByName(
-        contest.contestnumber,
-        site.sitenumber,
-        name
-      );
-      if (user === undefined) {
-        throw ApiError.notFound(
-          `User with username ${name} does not exist ` +
-            `in the active contest and site`
-        );
+      else {
+        console.log("Active contest not found");
       }
     }
 
-    // Salt deve ser a mesma usada para criar a hash recebida
-    const salt = process.env.PASSWORD_SALT;
-    if (salt === undefined) {
-      throw ApiError.internal(
-        "Cannot generate new authentication token: Password salt is not set"
-      );
-    }
-
-    // Se usuário é do tipo "team", hash é guardada com um "!" no início
-    const hashedPassword =
-      user.usertype === "team"
-        ? user.userpassword?.replace("!", "")
-        : user.userpassword;
-
-    const saltedHash = createHash("sha256")
-      .update(hashedPassword + salt)
-      .digest("hex");
-
-    if (saltedHash !== saltedPassword) {
-      throw ApiError.unauthorized("Wrong password");
-    }
-
-    // Cria e retorna novo token JWT
-    const privateKey = fs.readFileSync(privateKeyPath, "utf8");
-    if (privateKey === undefined) {
-      throw ApiError.internal(
-        "Cannot generate new authentication token: Private key not found"
-      );
+    // throw exception if user could not be authenticated 
+    if (contest === undefined ||
+        site === undefined ||
+        user === undefined ) {
+      throw ApiError.unauthorized("Incorrect username or password");
     }
 
     const userInfo: AuthPayload = {
@@ -156,12 +196,12 @@ class GenerateTokenUseCase {
       usertype: user.usertype,
     };
 
-    const tokenExpiresInSeconds = process.env.TOKEN_EXPIRES_IN_SECONDS;
-    const expiresIn =
-      tokenExpiresInSeconds !== undefined
-        ? tokenExpiresInSeconds + "s"
-        : "1800s";
-
+    // rsa key
+    const privateKeyPath = "./secrets/private.key";
+    const privateKey = fs.readFileSync(privateKeyPath, "utf8");
+    // token expiration time
+    const expiresIn = process.env.TOKEN_EXPIRES_IN_SECONDS + "s";
+    // generate jwt token
     const token = jwt.sign(userInfo, privateKey, {
       issuer: "BOCA API",
       audience: "boca-api",

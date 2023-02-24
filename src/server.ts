@@ -19,11 +19,14 @@
 //========================================================================
 
 import "reflect-metadata";
+
+import * as fs from "fs";
+import { generateKeyPairSync } from "crypto";
 import express from "express";
 
-import { router } from "./routes";
-
 import { AppDataSource } from "./database/index";
+
+import { router } from "./routes";
 
 import "./shared/container";
 
@@ -34,6 +37,46 @@ import {
   fallbackErrorHandler,
   requestLogger,
 } from "./middleware";
+
+function setup () {
+  // check whether salt is defined. If not, set default
+  if (process.env.PASSWORD_SALT === undefined) {
+    // set default
+    process.env.PASSWORD_SALT = "v512nj18986j8t9u1puqa2p9mh";
+  }
+
+  // check whether token expiration time is defined. If not, set default
+  if (process.env.TOKEN_EXPIRES_IN_SECONDS === undefined) {
+    process.env.TOKEN_EXPIRES_IN_SECONDS = "3600"; // 1 hour
+  }
+  
+  // check whether it is necessary to create pair of rsa keys
+  const secretsDir = "./secrets";
+  if (!fs.existsSync(secretsDir)) {
+    fs.mkdirSync(secretsDir);
+  }
+
+  const privateKeyPath = secretsDir + "/private.key";
+  const publicKeyPath = secretsDir + "/public.key";
+
+  if (!fs.existsSync(privateKeyPath) || !fs.existsSync(publicKeyPath)) {
+    const keyPair = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+      publicKeyEncoding: {
+        type: "spki",
+        format: "pem",
+      },
+      privateKeyEncoding: {
+        type: "pkcs8",
+        format: "pem",
+      },
+    });
+    fs.writeFileSync(privateKeyPath, keyPair.privateKey);
+    fs.writeFileSync(publicKeyPath, keyPair.publicKey);
+  }
+}
+
+setup();
 
 AppDataSource.initialize()
   .then(() => {
@@ -57,7 +100,7 @@ app.use(fallbackErrorHandler);
 
 const listenPort = process.env.LISTEN_PORT
   ? parseInt(process.env.LISTEN_PORT)
-  : 3333;
+  : 3000;
 
 app.listen(listenPort, () =>
   console.log(`Server is listening on port ${listenPort}`)
