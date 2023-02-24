@@ -94,13 +94,13 @@ const authController = new AuthController();
  *                 accessToken:
  *                   type: string
  *       400:
- *         description: 'Bad Request: Missing/invalid user name or password supplied'
+ *         description: 'Bad Request: Missing user name/password or the supplied are invalid'
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  *       401:
- *         description: 'Unauthorized: Incorrect user name or password supplied'
+ *         description: 'Unauthorized: The supplied user name/password are incorrect'
  *         content:
  *           application/json:
  *             schema:
