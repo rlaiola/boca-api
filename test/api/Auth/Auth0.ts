@@ -207,6 +207,7 @@ describe("Auth testing scenarios", () => {
 
       expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
       expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["expires"]).to.be.not.undefined;
       expect(response.body).to.have.own.property("accessToken");
     });
 
