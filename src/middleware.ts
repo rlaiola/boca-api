@@ -104,7 +104,7 @@ const authenticate = (authorizedUserTypes: string[]) => {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (token === undefined || token == null) {
-      throw ApiError.unauthorized("Missing authorization token");
+      throw ApiError.unauthorized("Authentication header is missing");
     }
 
     const publicKey = fs.readFileSync("./secrets/public.key", "utf8");
@@ -122,7 +122,7 @@ const authenticate = (authorizedUserTypes: string[]) => {
         algorithms: ["RS256"],
       }) as AuthPayload;
     } catch (error) {
-      throw ApiError.unauthorized("Invalid authorization token");
+      throw ApiError.unauthorized("The supplied access token is invalid");
     }
 
     if (authorizedUserTypes.includes(decodedToken.usertype) === false) {
