@@ -39,6 +39,10 @@ import {
 } from "./middleware";
 
 function setup () {
+  if (process.env.BOCA_API_PORT === undefined) {
+    process.env.BOCA_API_PORT = "3000";
+  }
+
   // check whether salt is defined. If not, set default
   if (process.env.PASSWORD_SALT === undefined) {
     // set default
@@ -98,9 +102,7 @@ app.use(errorLogger);
 app.use(errorHandler);
 app.use(fallbackErrorHandler);
 
-const listenPort = process.env.LISTEN_PORT
-  ? parseInt(process.env.LISTEN_PORT)
-  : 3000;
+const listenPort = parseInt(process.env.BOCA_API_PORT + "");
 
 app.listen(listenPort, () =>
   console.log(`Server is listening on port ${listenPort}`)
