@@ -138,7 +138,9 @@ class ContestController {
         contestmainsiteurl,
       });
 
-      return response.status(HttpStatus.CREATED).json(contest);
+      // add content-location http header to indicate how to access the new contest
+      return response.setHeader('Content-Location', `/api/contest/${contest.contestnumber}`)
+                     .status(HttpStatus.CREATED).json(contest);
     } catch (error) {console.log(error);
       next(error);
     }

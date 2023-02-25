@@ -162,6 +162,10 @@ contestsRoutes.get(
  *     responses:
  *       201:
  *         description: 'Success: Contest created'
+ *         headers:
+ *           Content-Location:
+ *             type: string
+ *             description: direct URL to access the new contest in the future
  *         content:
  *           application/json:
  *             schema:

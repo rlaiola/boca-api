@@ -92,6 +92,8 @@ describe("Create contest testing scenarios", () => {
 
       expect(response.statusCode).to.equal(HttpStatus.CREATED);
       expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${response.body["contestnumber"]}`);
       expect(response.body).to.have.own.property("contestnumber");
     });
 
@@ -142,6 +144,8 @@ describe("Create contest testing scenarios", () => {
 
       expect(response.statusCode).to.equal(HttpStatus.CREATED);
       expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${contestnumber}`);
       expect(response.body).to.have.own.property("contestnumber");
     });
 
@@ -192,6 +196,8 @@ describe("Create contest testing scenarios", () => {
 
       expect(response.statusCode).to.equal(HttpStatus.CREATED);
       expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${response.body["contestnumber"]}`);
       expect(response.body).to.have.own.property("contestnumber");
     });
 
@@ -242,6 +248,8 @@ describe("Create contest testing scenarios", () => {
 
       expect(response.statusCode).to.equal(HttpStatus.CREATED);
       expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${response.body["contestnumber"]}`);
       expect(response.body).to.have.own.property("contestnumber");
     });
 
