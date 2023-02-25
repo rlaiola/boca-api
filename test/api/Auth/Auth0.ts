@@ -24,16 +24,11 @@ import request from "supertest";
 
 import { HttpStatus } from "../../../src/shared/definitions/HttpStatusCodes";
 
-const host = process.env.BOCA_API_HOST != undefined?
-               process.env.BOCA_API_HOST :
-               "localhost";
-const port = process.env.BOCA_API_PORT != undefined?
-               process.env.BOCA_API_PORT :
-               3000;
+const host = process.env.BOCA_API_HOST;
+const port = process.env.BOCA_API_PORT;
 const URL = host + ":" + port;
-const salt = process.env.BOCA_KEY != undefined?
-               process.env.BOCA_KEY :
-               "v512nj18986j8t9u1puqa2p9mh";
+const pass = process.env.BOCA_PASSWORD;
+const salt = process.env.BOCA_KEY;
 
 describe("Auth testing scenarios", () => {
 
@@ -41,7 +36,7 @@ describe("Auth testing scenarios", () => {
 
     it('Missing user name and password', async () => {
       const user = "system";
-      const password = "boca";
+      const password = pass;
 
       const response = await request(URL)
         .get("/api/token")
@@ -57,7 +52,7 @@ describe("Auth testing scenarios", () => {
 
     it('Missing user name', async () => {
       const user = "system";
-      const password = "boca";
+      const password = pass;
 
       const response = await request(URL)
         .get("/api/token")
@@ -74,7 +69,7 @@ describe("Auth testing scenarios", () => {
 
     it('Missing password', async () => {
       const user = "system";
-      const password = "boca";
+      const password = pass;
       
       const response = await request(URL)
         .get("/api/token")
@@ -91,7 +86,7 @@ describe("Auth testing scenarios", () => {
 
     it('Invalid password format', async () => {
       const user = "system";
-      const password = "boca";
+      const password = pass;
 
       const response = await request(URL)
         .get("/api/token")
@@ -134,10 +129,10 @@ describe("Auth testing scenarios", () => {
 
     it('Incorrect user name', async () => {
       const user = "SYSTEM";
-      const password = "boca";
+      const password = pass;
 
       const hashedPassword = createHash("sha256")
-        .update(password)
+        .update(password + "")
         .digest("hex");
       const hash = createHash("sha256")
         .update(hashedPassword + salt)
@@ -188,10 +183,10 @@ describe("Auth testing scenarios", () => {
 
     it('Access token generated', async () => {
       const user = "system";
-      const password = "boca";
+      const password = pass;
 
       const hashedPassword = createHash("sha256")
-        .update(password)
+        .update(password + "")
         .digest("hex");
       const hash = createHash("sha256")
         .update(hashedPassword + salt)
