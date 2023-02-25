@@ -1,11 +1,37 @@
+//========================================================================
+// Copyright Universidade Federal do Espirito Santo (Ufes)
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// 
+// This program is released under license GNU GPL v3+ license.
+//
+//========================================================================
+
 import "reflect-metadata";
 
 import { NextFunction, Request, Response } from "express";
 import { container } from "tsyringe";
 
-import { ContestRequestValidator } from "../../shared/validation/requests/ContestRequestValidator";
 import { HttpStatus } from "../../shared/definitions/HttpStatusCodes";
+import { UserType } from "../../shared/definitions/UserType";
+import { AuthPayload } from "../../shared/definitions/AuthPayload";
+
+import { ContestRequestValidator } from "../../shared/validation/requests/ContestRequestValidator";
+
 import IdValidator from "../../shared/validation/utils/IdValidator";
+
+import { ApiError } from "../../errors/ApiError";
 
 import { CreateContestsUseCase } from "./CreateContestUseCase";
 import { DeleteContestsUseCase } from "./DeleteContestUseCase";
@@ -21,8 +47,11 @@ class ContestController {
   ): Promise<Response | undefined> {
     const listContestsUseCase = container.resolve(ListContestsUseCase);
 
+    // current user
+    const currUser: AuthPayload = request.body.authtoken;
+
     try {
-      const all = await listContestsUseCase.execute();
+      const all = await listContestsUseCase.execute({ currUser });
       return response.json(all);
     } catch (error) {
       next(error);
@@ -40,9 +69,22 @@ class ContestController {
     const { id_c } = request.params;
     const contestnumber = Number(id_c);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
 
+      // check whether it's the fake contest or the user is not of system type
+      // and the contest is not the one the user is currently registered in
+      if (contestnumber === 0 || (userPayload.usertype !== UserType.SYSTEM && 
+                                  userPayload.contestnumber != contestnumber)) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+
+      // otherwise, retrieve contest
       const contest = await getContestsUseCase.execute({ contestnumber });
 
       return response.status(HttpStatus.SUCCESS).json(contest);
@@ -60,6 +102,7 @@ class ContestController {
     const contestRequestValidator = container.resolve(ContestRequestValidator);
 
     const {
+      contestnumber,
       contestname,
       conteststartdate,
       contestduration,
@@ -79,6 +122,7 @@ class ContestController {
       contestRequestValidator.hasRequiredCreateProperties(request.body);
 
       const contest = await createContestsUseCase.execute({
+        contestnumber,
         contestname,
         conteststartdate,
         contestduration,
@@ -95,7 +139,7 @@ class ContestController {
       });
 
       return response.status(HttpStatus.CREATED).json(contest);
-    } catch (error) {
+    } catch (error) {console.log(error);
       next(error);
     }
   }
@@ -107,10 +151,12 @@ class ContestController {
   ): Promise<Response | undefined> {
     const updateContestUseCase = container.resolve(UpdateContestUseCase);
     const idValidator = container.resolve(IdValidator);
-    const contestRequestValidator = container.resolve(ContestRequestValidator);
-
+    
     const { id_c } = request.params;
     const contestnumber = Number(id_c);
+
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
 
     const {
       contestname,
@@ -130,9 +176,18 @@ class ContestController {
 
     try {
       idValidator.isContestId(contestnumber);
-      contestRequestValidator.hasRequiredUpdateProperties(request.body);
+      //contestRequestValidator.hasRequiredUpdateProperties(request.body);
 
-      const updatedContest = await updateContestUseCase.execute({
+      // check whether it's the fake contest or the user is of admin type
+      // and the contest is not the one the user is currently registered in
+      if (contestnumber === 0 || (userPayload.usertype == UserType.ADMIN && 
+                                  userPayload.contestnumber != contestnumber)) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+
+      await updateContestUseCase.execute({
         contestnumber,
         contestname,
         contestactive,
@@ -149,7 +204,7 @@ class ContestController {
         contestunlockkey,
       });
 
-      return response.status(HttpStatus.UPDATED).json(updatedContest);
+      return response.status(HttpStatus.UPDATED).json();
     } catch (error) {
       next(error);
     }
@@ -168,6 +223,13 @@ class ContestController {
 
     try {
       idValidator.isContestId(contestnumber);
+
+      // Not even users of system type can delete the fake contest
+      if (contestnumber === 0) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
 
       await deleteContestsUseCase.execute({ contestnumber: contestnumber });
 

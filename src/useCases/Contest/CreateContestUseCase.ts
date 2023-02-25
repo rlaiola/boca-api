@@ -26,7 +26,10 @@ import { IContestsRepository } from "../../repositories/IContestsRepository";
 
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
 
+import IdValidator from "../../shared/validation/utils/IdValidator";
+
 interface IRequest {
+  contestnumber: number;
   contestname: string;
   conteststartdate: number;
   contestduration: number;
@@ -44,21 +47,24 @@ interface IRequest {
 
 @injectable()
 class CreateContestsUseCase {
+  private idValidator: IdValidator;
   private contestValidator: ContestValidator;
 
   constructor(
     @inject("ContestsRepository")
     private contestsRepository: IContestsRepository
   ) {
+    this.idValidator = container.resolve(IdValidator);
     this.contestValidator = container.resolve(ContestValidator);
   }
 
   async execute({
+    contestnumber,
     contestname,
     conteststartdate,
     contestduration,
-    contestlastmileanswer,
-    contestlastmilescore,
+    contestlastmileanswer = 0,  // optional
+    contestlastmilescore = 0,   // optional
     contestlocalsite,
     contestpenalty,
     contestmaxfilesize,
@@ -68,9 +74,17 @@ class CreateContestsUseCase {
     contestunlockkey,
     contestmainsiteurl,
   }: IRequest): Promise<Contest> {
-    let lastId = await this.contestsRepository.getLastId();
-    lastId = lastId !== undefined ? lastId : 0;
-    const contestnumber = lastId + 1;
+    if (contestnumber === undefined) {
+      let lastId = await this.contestsRepository.getLastId();
+      lastId = lastId !== undefined ? lastId : 0;
+      contestnumber = lastId + 1;  
+    }
+    else {
+      // check if it is a valid id
+      this.idValidator.isContestId(contestnumber);
+      // and it has not been assigned yet
+      await this.contestValidator.notexists(contestnumber);
+    }
 
     const contest = new Contest(
       contestnumber,
@@ -90,7 +104,6 @@ class CreateContestsUseCase {
     );
 
     await this.contestValidator.isValid(contest);
-
     return await this.contestsRepository.create({ ...contest });
   }
 }

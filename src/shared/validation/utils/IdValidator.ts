@@ -24,38 +24,41 @@ import { ApiError } from "../../../errors/ApiError";
 
 @injectable()
 class IdValidator {
-  isId(id: number, entity: string, minId: number) {
-    if (Number.isNaN(id) || id < minId) {
-      throw ApiError.badRequest(`Invalid ${entity} ID`);
-    }
+  isId(id: number, entity: string, minId: number, maxId: number) {
+    if (Number.isNaN(id)) 
+      throw ApiError.badRequest(`Invalid ${entity}number`);
+    else if (id < minId) 
+      throw ApiError.badRequest(`${entity}number must not be less than ${minId}`);
+    else if (id > maxId)
+      throw ApiError.badRequest(`${entity}number must not be greater than ${maxId}`);
   }
 
   isContestId(id: number) {
-    this.isId(id, "contest", 0);
+    this.isId(id, "contest", 1, 2147483647);
   }
 
   isSiteId(id: number) {
-    this.isId(id, "site", 1);
+    this.isId(id, "site", 1, 2147483647);
   }
 
   isUserId(id: number) {
-    this.isId(id, "user", 1);
+    this.isId(id, "user", 1, 2147483647);
   }
 
   isAnswerId(id: number) {
-    this.isId(id, "answer", 0);
+    this.isId(id, "answer", 0, 2147483647);
   }
 
   isLangId(id: number) {
-    this.isId(id, "language", 1);
+    this.isId(id, "language", 1, 2147483647);
   }
 
   isProblemId(id: number) {
-    this.isId(id, "problem", 0);
+    this.isId(id, "problem", 0, 2147483647);
   }
 
   isRunId(id: number) {
-    this.isId(id, "run", 1);
+    this.isId(id, "run", 1, 2147483647);
   }
 }
 

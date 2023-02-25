@@ -46,6 +46,16 @@ class ContestValidator extends EntityValidator<Contest> {
 
     return existingContest;
   }
+
+  async notexists(contestnumber: number): Promise<undefined> {
+    const existingContest = await this.contestRepository.getById(contestnumber);
+
+    if (existingContest) {
+      throw ApiError.alreadyExists("Contest already exists");
+    }
+
+    return undefined;
+  }
 }
 
 export default ContestValidator;
