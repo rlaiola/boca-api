@@ -162,14 +162,14 @@ contestsRoutes.get(
  *                 contestduration: 11264340
  *                 contestlastmileanswer: 11263440
  *                 contestlastmilescore: 11260740
- *                 contestlocalsite: 1
  *                 contestpenalty: 1200
  *                 contestmaxfilesize: 100000
- *                 contestactive: false
- *                 contestmainsite: 1
- *                 contestkeys: "[d3g22q]"
- *                 contestunlockkey: "[d3g22q]"
  *                 contestmainsiteurl: "http://a.b"
+ *                 contestunlockkey: "[d3g22q]"
+ *                 contestkeys: "[d3g22q]"
+ *                 contestmainsite: 1
+ *                 contestlocalsite: 1
+ *                 contestactive: false
  *     responses:
  *       201:
  *         description: 'Success: Contest created'
@@ -222,7 +222,9 @@ contestsRoutes.post(
  *     summary: Update a contest by ID
  *     description: |
  *       Updates a contest based on ID (*contestnumber*). The users of _system_ and of _admin_ type 
- *       (the one associated with the given contest) have permission for this operation.
+ *       (the one associated with the given contest) have permission for this operation. The latter
+ *       is allowed to update only the following properties: *contestmainsiteurl*, *contestunlockkey*, 
+ *       *contestkeys* and *contestmainsite*.
  *     operationId: updateContestById
  *     security:
  *       - bearerAuth: []
@@ -249,14 +251,14 @@ contestsRoutes.post(
  *                 contestduration: 3600
  *                 contestlastmileanswer: 3585
  *                 contestlastmilescore: 3560
- *                 contestlocalsite: 5
  *                 contestpenalty: 12000
  *                 contestmaxfilesize: 1000
- *                 contestactive: false
- *                 contestmainsite: 2
- *                 contestkeys: ""
- *                 contestunlockkey: ""
  *                 contestmainsiteurl: ""
+ *                 contestunlockkey: ""
+ *                 contestkeys: ""
+ *                 contestmainsite: 2
+ *                 contestlocalsite: 5
+ *                 contestactive: false
  *     responses:
  *       204:
  *         description: 'Success: Contest updated'
