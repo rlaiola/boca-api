@@ -2,12 +2,12 @@
   "contestname": "Contest Beta",
   "conteststartdate": 0,
   "contestduration": 3600,
-  "contestlocalsite": 5,
   "contestpenalty": 12000,
   "contestmaxfilesize": 1000,
-  "contestactive": false,
-  "contestmainsite": 2,
-  "contestkeys": "",
+  "contestmainsiteurl": "",
   "contestunlockkey": "",
-  "contestmainsiteurl": ""
+  "contestkeys": "",
+  "contestmainsite": 2,
+  "contestlocalsite": 5,
+  "contestactive": false
 }

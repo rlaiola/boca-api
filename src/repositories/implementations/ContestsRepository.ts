@@ -39,7 +39,11 @@ class ContestsRepository implements IContestsRepository {
   }
 
   async list(): Promise<Contest[]> {
-    return await this.repository.find();
+    return await this.repository.find({
+      order: {
+        contestnumber: "ASC"
+      }
+    });
   }
 
   async getActive(): Promise<Contest | undefined> {

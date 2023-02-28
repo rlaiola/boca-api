@@ -22,9 +22,6 @@ import { expect } from "chai";
 import { describe } from "mocha";
 import request from "supertest";
 
-import { Contest } from "../../../src/entities/Contest";
-
-import { URL } from "../../utils/URL";
 import { getToken } from "../../utils/common";
 
 import createContestAlphaPass from "../../entities/Contest/Pass/createContestAlpha.json";
@@ -32,158 +29,828 @@ import createContestBetaPass from "../../entities/Contest/Pass/createContestBeta
 import updateContestAlphaPass from "../../entities/Contest/Pass/updateContestAlpha.json";
 import updateContestBetaPass from "../../entities/Contest/Pass/updateContestBeta.json";
 
-import updateContestAlphaFail from "../../entities/Contest/Fail/updateContestAlpha.json";
-import updateContestBetaFail from "../../entities/Contest/Fail/updateContestBeta.json";
-import updateContestCharlieFail from "../../entities/Contest/Fail/updateContestCharlie.json";
+import { HttpStatus } from "../../../src/shared/definitions/HttpStatusCodes";
 
-describe("Modifica os contests criados anteriormente", () => {
-  let systemToken: string;
-  const conteststartdate = Math.floor(Date.now() / 1000);
+describe("Update contest testing scenarios", () => {
+  let host;
+  let port;
+  let URL: string;
+  let pass: string;
+  let salt: string;
+  let contestnumberAlpha: number;
+  let contestnumberBeta: number;
 
-  let contestAlpha: Contest;
-  let contestBeta: Contest;
+  it('Setup', async () => {
+    host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
+    port = process.env.BOCA_API_PORT ? process.env.BOCA_API_PORT : "3000";
+    URL = host + ":" + port;
+    pass = process.env.BOCA_PASSWORD ? process.env.BOCA_PASSWORD : "boca";
+    salt = process.env.BOCA_KEY ? process.env.BOCA_KEY : "v512nj18986j8t9u1puqa2p9mh";
 
-  it('Faz login no User "system"', async () => {
-    systemToken = await getToken(
-      "boca",
-      "v512nj18986j8t9u1puqa2p9mh",
+    const token = await getToken(
+      pass,
+      salt,
       "system"
     );
-  });
 
-  it("Resgata os contests a serem modificados", async () => {
-    const all = await request(URL)
+    // get all contests
+    let response = await request(URL)
       .get("/api/contest")
       .set("Accept", "application/json")
-      .set("Authorization", `Token ${systemToken}`);
+      .set("Authorization", `Bearer ${token}`);
 
-    expect(all.statusCode).to.equal(200);
-    expect(all.headers["content-type"]).to.contain("application/json");
-    expect(all.body).to.be.an("array");
+    expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+    expect(response.headers["content-type"]).to.contain("application/json");
+    expect(response.body).to.be.an("array");
 
-    contestAlpha = all.body.find((contest: Contest) =>
-      contest.contestname.includes("Contest Alpha")
-    );
+    // and delete them 
+    const all = response.body;
+    const n = all.length;
+    for (let i = 0; i < n; i++) {
+      const k = all[i].contestnumber;
+      const resp = await request(URL)
+        .delete(`/api/contest/${k}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
 
-    contestBeta = all.body.find((contest: Contest) =>
-      contest.contestname.includes("Contest Beta")
-    );
+        expect(resp.statusCode).to.equal(HttpStatus.DELETED);
+        expect(resp.headers).to.not.have.own.property("content-type");
+        expect(resp.body).to.be.empty;
+    }
+
+    // create alpha contest
+    response = await request(URL)
+      .post("/api/contest")
+      .set("Accept", "application/json")
+      .set("Authorization", `Bearer ${token}`)
+      .send(createContestAlphaPass);
+
+    expect(response.statusCode).to.equal(HttpStatus.CREATED);
+    expect(response.headers["content-type"]).to.contain("application/json");
+    expect(response.headers["content-location"]).to
+      .contain(`/api/contest/${response.body["contestnumber"]}`);
+    expect(response.body).to.have.own.property("contestnumber");
+
+    // save alpha's contestnumber
+    contestnumberAlpha = parseInt(response.body["contestnumber"]);
+    
+    // create beta contest
+    response = await request(URL)
+      .post("/api/contest")
+      .set("Accept", "application/json")
+      .set("Authorization", `Bearer ${token}`)
+      .send(createContestBetaPass);
+    
+    expect(response.statusCode).to.equal(HttpStatus.CREATED);
+    expect(response.headers["content-type"]).to.contain("application/json");
+    expect(response.headers["content-location"]).to
+      .contain(`/api/contest/${response.body["contestnumber"]}`);
+    expect(response.body).to.have.own.property("contestnumber");
+
+    // save beta's contestnumber
+    contestnumberBeta = parseInt(response.body["contestnumber"]);
   });
 
-  describe("Fluxo positivo", () => {
-    it('Ativa com sucesso o contest de nome "Contest Beta"', async () => {
-      expect(contestBeta).to.deep.include({
-        ...createContestBetaPass,
-        conteststartdate: contestBeta.conteststartdate,
-      });
-      expect(contestBeta.contestnumber).to.deep.equal(2);
+  describe("Negative testing", () => {
 
-      updateContestBetaPass.conteststartdate = contestBeta.conteststartdate;
-
+    it("Missing authentication header", async () => {
       const response = await request(URL)
-        .put("/api/contest/2")
+        .put(`/api/contest/${contestnumberAlpha}`)
         .set("Accept", "application/json")
-        .set("Authorization", `Token ${systemToken}`)
-        .send(updateContestBetaPass);
-
-      expect(response.statusCode).to.equal(200);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("contestnumber");
-      expect(response.body["contestnumber"]).to.equal(2);
-      expect(response.body).to.deep.include(updateContestBetaPass);
-    });
-
-    it("Desativa o fake contest", async () => {
-      const { body: fakeContest } = await request(URL)
-        .get("/api/contest/0")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${systemToken}`);
-
-      expect(fakeContest).to.have.own.property("contestnumber");
-      expect(fakeContest["contestnumber"]).to.equal(0);
-
-      fakeContest["contestactive"] = false;
-      fakeContest["contestduration"] = 1;
-
-      const response = await request(URL)
-        .put("/api/contest/0")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${systemToken}`)
-        .send(fakeContest);
-
-      expect(response.statusCode).to.equal(200);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("contestnumber");
-      expect(response.body["contestnumber"]).to.equal(0);
-      expect(response.body).to.deep.include(fakeContest);
-    });
-
-    it('Substitui a entidade "Contest Alpha" por uma modificada', async () => {
-      expect(contestAlpha).to.deep.include({
-        ...createContestAlphaPass,
-        conteststartdate: contestAlpha.conteststartdate,
-      });
-      expect(contestAlpha.contestnumber).to.deep.equal(1);
-
-      updateContestAlphaPass.conteststartdate = contestAlpha.conteststartdate;
-      updateContestAlphaPass.conteststartdate = conteststartdate + 7200;
-
-      const response = await request(URL)
-        .put("/api/contest/1")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${systemToken}`)
         .send(updateContestAlphaPass);
 
-      expect(response.statusCode).to.equal(200);
+      expect(response.statusCode).to.equal(HttpStatus.UNAUTHORIZED);
       expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("contestnumber");
-      expect(response.body["contestnumber"]).to.equal(1);
-      expect(response.body).to.deep.include(updateContestAlphaPass);
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
     });
+
+    it("Invalid access token", async () => {
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${pass}`)
+        .send(updateContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.UNAUTHORIZED);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestnumber (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestnumber = 0;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumber}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send(updateContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestnumber (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestnumber = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumber}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send(updateContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestname (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestname = "";
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestname,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestname (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestname = "X4jqD59RuVBVGZEoOlLiZTD5tVykKCFnRVPKNmDKtUsisVJC8sQJ2GujUQpFQ4jekITYpkM9STUKlo7G5CnQjMKsqTTr0Rg0Ge99i";
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestname,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid conteststartdate (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const conteststartdate = -1;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          conteststartdate,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid conteststartdate (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const conteststartdate = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          conteststartdate,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestduration (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestduration = 0;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestduration,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestduration (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestduration = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestduration,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestlastmileanswer (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestlastmileanswer = -1;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestlastmileanswer,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestlastmileanswer (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestlastmileanswer = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestlastmileanswer,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestlastmilescore (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestlastmilescore = -1;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestlastmilescore,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestlastmilescore (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestlastmilescore = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestlastmilescore,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestpenalty (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestpenalty = -1;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestpenalty,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestpenalty (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestpenalty = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestpenalty,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestmaxfilesize (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestmaxfilesize = 0;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestmaxfilesize,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestmaxfilesize (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestmaxfilesize = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestmaxfilesize,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestmainsiteurl (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestmainsiteurl = "VZ7133oXEAQ8Er5D5DQ4JtmPX4vzbSQdJjMT1uN0zFWzTOLo5RkKbVjiofFoLUuzI1KipAYQarKF2l0j1B31shN4ANdmf2X1mfIJC0yMUhdk2Uy42J9XmvxO53Te19X6vuSUO3f2StBV45yasf8NtrO523cgQfi3L2YR6R0gbru9MZHCdDyYIY2WeAYSpQRVE9FUEWQ4K";
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestmainsiteurl,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestunlockkey (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestunlockkey = "sJ1BuyGEKMFKJ8O4eJ87gNnVmPbRFGZUYHXaIkoSiLyhpFAM00jrm41A1usy7T1h3sAEhadZeMJSEZNptzKBH8OUDT7PbpQSMIknA";
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestunlockkey,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestmainsite (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestmainsite = 0;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestmainsite,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestmainsite (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestmainsite = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestmainsite,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestlocalsite (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestlocalsite = 0;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestlocalsite,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestlocalsite (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestlocalsite = 4294967295;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestlocalsite,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of admin type has no permission (contestactive)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin"
+      );
+
+      const contestactive = false;
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of team type has no permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "team1"
+      );
+
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send(updateContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of judge type has no permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "judge1"
+      );
+
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send(updateContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Contest not found", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const response = await request(URL)
+        .put(`/api/contest/${contestnumberBeta + 1}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send(updateContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.NOT_FOUND);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+  
   });
 
-  describe("Fluxo negativo", () => {
-    it('Tenta modificar a duração de "Contest Alpha" para um valor inválido', async () => {
-      const response = await request(URL)
-        .put("/api/contest/1")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${systemToken}`)
-        .send(updateContestAlphaFail);
+  describe("Positive testing", () => {
 
-      expect(response.statusCode).to.equal(400);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include(
-        "contestduration must be greater than zero"
+    it("User of system type has permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
       );
+
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = updateContestAlphaPass;
+
+      let response = await request(URL)
+        .put(`/api/contest/${contestnumberBeta}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.UPDATED);
+      expect(response.headers).to.not.have.own.property("content-type");
+      expect(response.body).to.be.empty;
+
+      // check whether contest has been changed
+      response = await request(URL)
+        .get(`/api/contest/${contestnumberBeta}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+      
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.be.an("object");
+      expect(response.body).to.deep.equal({ 
+        contestnumber: contestnumberBeta,
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+        updatetime: response.body["updatetime"]
+      });
     });
 
-    it('Tenta substituir o site principal de "Contest Beta" pelo fake site', async () => {
-      const response = await request(URL)
-        .put("/api/contest/2")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${systemToken}`)
-        .send(updateContestBetaFail);
-
-      expect(response.statusCode).to.equal(400);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include(
-        "contestmainsite must be greater than zero"
+    it("User of admin type has permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin"
       );
-    });
 
-    it("Tenta modificar um contest que não existe", async () => {
-      const response = await request(URL)
-        .put("/api/contest/3")
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = updateContestBetaPass;
+
+      let response = await request(URL)
+        .put(`/api/contest/${contestnumberAlpha}`)
         .set("Accept", "application/json")
-        .set("Authorization", `Token ${systemToken}`)
-        .send(updateContestCharlieFail);
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
 
-      expect(response.statusCode).to.equal(404);
+      expect(response.statusCode).to.equal(HttpStatus.UPDATED);
+      expect(response.headers).to.not.have.own.property("content-type");
+      expect(response.body).to.be.empty;
+
+      // check whether only respective properties have been changed
+      response = await request(URL)
+        .get(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+      
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
       expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include("Contest does not exist");
+      expect(response.body).to.be.an("object");
+      expect(response.body).to.deep.equal({ 
+        contestnumber: contestnumberAlpha,
+        contestname: createContestAlphaPass.contestname,
+        conteststartdate: createContestAlphaPass.conteststartdate,
+        contestduration: createContestAlphaPass.contestduration,
+        contestlastmileanswer: createContestAlphaPass.contestlastmileanswer,
+        contestlastmilescore: createContestAlphaPass.contestlastmilescore,
+        contestpenalty: createContestAlphaPass.contestpenalty,
+        contestmaxfilesize: createContestAlphaPass.contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite: createContestAlphaPass.contestlocalsite,
+        contestactive: createContestAlphaPass.contestactive,
+        updatetime: response.body["updatetime"]
+      });
     });
+
   });
+
 });

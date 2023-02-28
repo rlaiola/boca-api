@@ -38,7 +38,7 @@ const contestController = new ContestController();
  * /api/contest:
  *   get:
  *     tags: ["Contest"]
- *     summary: Fetch all contests
+ *     summary: List all contests
  *     description: Returns all contests that the user has access to.
  *     operationId: getContests
  *     security:
@@ -62,10 +62,10 @@ const contestController = new ContestController();
 contestsRoutes.get(
   "/contest",
   authenticate([
-    UserType.SYSTEM,  // Deve receber todos os Contests
-    UserType.ADMIN,   // TODO Deve apenas receber o Contest ao qual pertence
-    UserType.JUDGE,   // TODO Deve apenas receber o Contest ao qual pertence
-    UserType.TEAM,    // TODO Deve apenas receber o Contest ao qual pertence
+    UserType.SYSTEM,  // get all contests
+    UserType.ADMIN,   // get a single contest that the user has access to
+    UserType.JUDGE,   // get a single contest that the user has access to
+    UserType.TEAM,    // get a single contest that the user has access to
   ]),
   contestController.listAll
 );
@@ -75,7 +75,7 @@ contestsRoutes.get(
  * /api/contest/{id_c}:
  *   get:
  *     tags: ["Contest"]
- *     summary: Fetch contest by ID
+ *     summary: Find a contest by ID
  *     description: |
  *       Returns a single contest based on ID (*contestnumber*) but only if the user has access to it.
  *     operationId: getContestById
@@ -87,7 +87,7 @@ contestsRoutes.get(
  *         schema:
  *           type: string
  *         required: true
- *         description: ID (*contestnumber*) of the contest to return
+ *         description: ID (*contestnumber*) of the contest to fetch
  *     responses:
  *       200:
  *         description: 'Success: Contest found'
@@ -95,6 +95,12 @@ contestsRoutes.get(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Contest'
+ *       400:
+ *         description: 'Bad Request: The supplied *contestnumber* is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: 'Unauthorized: Authentication header is missing or the supplied API access token is invalid'
  *         content:
@@ -117,10 +123,10 @@ contestsRoutes.get(
 contestsRoutes.get(
   "/contest/:id_c",
   authenticate([
-    UserType.SYSTEM, // Deve receber o Contest solicitado sempre
-    UserType.ADMIN,  // TODO Deve apenas receber o Contest solicitado se pertencer ao mesmo
-    UserType.JUDGE,  // TODO Deve apenas receber o Contest solicitado se pertencer ao mesmo
-    UserType.TEAM,   // TODO Deve apenas receber o Contest solicitado se pertencer ao mesmo
+    UserType.SYSTEM, // get contest if it exists
+    UserType.ADMIN,  // get contest if the user has access to it
+    UserType.JUDGE,  // get contest if the user has access to it
+    UserType.TEAM,   // get contest if the user has access to it
   ]),
   contestController.getOne
 );
@@ -131,7 +137,12 @@ contestsRoutes.get(
  *   post:
  *     tags: ["Contest"]
  *     summary: Add a new contest
- *     description: The user of _system_ type only has permission for this operation.
+ *     description: | 
+ *       The user of _system_ type only has permission for this operation. All
+ *       properties are required, with the exception of *contestnumber*,
+ *       *contestlastmileanswer*, and *contestlastmilescore*. If supplied, 
+ *       *contestnumber* will be used only if that value has not been assigned
+ *       to another contest.
  *     operationId: createContest
  *     security:
  *       - bearerAuth: []
@@ -198,7 +209,7 @@ contestsRoutes.get(
 contestsRoutes.post(
   "/contest",
   authenticate([
-    UserType.SYSTEM, // Único capaz de criar um Contest
+    UserType.SYSTEM, // the user of system type only has permission for this operation
   ]),
   contestController.create
 );
@@ -228,7 +239,7 @@ contestsRoutes.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Contest'
+ *             $ref: '#/components/schemas/UpdateContest'
  *           examples:
  *             contest:
  *               summary: An example of contest
@@ -249,6 +260,12 @@ contestsRoutes.post(
  *     responses:
  *       204:
  *         description: 'Success: Contest updated'
+ *       400:
+ *         description: 'Bad Request: Missing required contest property or the supplied is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: 'Unauthorized: Authentication header is missing or the supplied API access token is invalid'
  *         content:
@@ -271,8 +288,8 @@ contestsRoutes.post(
 contestsRoutes.put(
   "/contest/:id_c",
   authenticate([
-    UserType.SYSTEM, // Deve receber o Contest solicitado sempre // TODO Validar
-    UserType.ADMIN,  // TODO Deve apenas receber o Contest solicitado se pertencer ao mesmo
+    UserType.SYSTEM, // update contest if it exists
+    UserType.ADMIN,  // udpate contest if the user has access to it
   ]),
   contestController.update
 );
@@ -299,6 +316,12 @@ contestsRoutes.put(
  *     responses:
  *       204:
  *         description: 'Success: Contest deleted'
+ *       400:
+ *         description: 'Bad Request: The supplied *contestnumber* is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: 'Unauthorized: Authentication header is missing or the supplied API access token is invalid'
  *         content:
@@ -321,7 +344,7 @@ contestsRoutes.put(
 contestsRoutes.delete(
   "/contest/:id_c",
   authenticate([
-    UserType.SYSTEM, // Único capaz de deletar um Contest // TODO Validar
+    UserType.SYSTEM, // the user of system type only has permission for this operation
   ]),
   contestController.delete
 );

@@ -34,6 +34,7 @@ describe("Create contest testing scenarios", () => {
   let URL: string;
   let pass: string;
   let salt: string;
+  let contestnumberAlpha: number;
 
   it('Setup', async () => {
     host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
@@ -41,218 +42,53 @@ describe("Create contest testing scenarios", () => {
     URL = host + ":" + port;
     pass = process.env.BOCA_PASSWORD ? process.env.BOCA_PASSWORD : "boca";
     salt = process.env.BOCA_KEY ? process.env.BOCA_KEY : "v512nj18986j8t9u1puqa2p9mh";
-  });
 
-  describe("Positive testing", () => {
+    const token = await getToken(
+      pass,
+      salt,
+      "system"
+    );
 
-    it("Contest created", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
+    // get all contests
+    let response = await request(URL)
+      .get("/api/contest")
+      .set("Accept", "application/json")
+      .set("Authorization", `Bearer ${token}`);
 
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
+    expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+    expect(response.headers["content-type"]).to.contain("application/json");
+    expect(response.body).to.be.an("array");
 
-      const response = await request(URL)
-        .post("/api/contest")
+    // and delete them 
+    const all = response.body;
+    const n = all.length;
+    for (let i = 0; i < n; i++) {
+      const k = all[i].contestnumber;
+      const resp = await request(URL)
+        .delete(`/api/contest/${k}`)
         .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
+        .set("Authorization", `Bearer ${token}`);
 
-      expect(response.statusCode).to.equal(HttpStatus.CREATED);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.headers["content-location"]).to
-        .contain(`/api/contest/${response.body["contestnumber"]}`);
-      expect(response.body).to.have.own.property("contestnumber");
-    });
+        expect(resp.statusCode).to.equal(HttpStatus.DELETED);
+        expect(resp.headers).to.not.have.own.property("content-type");
+        expect(resp.body).to.be.empty;
+    }
 
-    it("Optional contestnumber", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
+    // create a single contest to the 'contest already exists' test
+    response = await request(URL)
+      .post("/api/contest")
+      .set("Accept", "application/json")
+      .set("Authorization", `Bearer ${token}`)
+      .send(createContestAlphaPass);
 
-      const contestnumber = 100;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        //contestlastmileanswer,
-        //contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestBetaPass;
+    expect(response.statusCode).to.equal(HttpStatus.CREATED);
+    expect(response.headers["content-type"]).to.contain("application/json");
+    expect(response.headers["content-location"]).to
+      .contain(`/api/contest/${response.body["contestnumber"]}`);
+    expect(response.body).to.have.own.property("contestnumber");
 
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          //contestlastmileanswer,
-          //contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.CREATED);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.headers["content-location"]).to
-        .contain(`/api/contest/${contestnumber}`);
-      expect(response.body).to.have.own.property("contestnumber");
-    });
-
-    it("Optional contestlastmileanswer", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        //contestlastmileanswer,
-        contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          //contestlastmileanswer,
-          contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.CREATED);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.headers["content-location"]).to
-        .contain(`/api/contest/${response.body["contestnumber"]}`);
-      expect(response.body).to.have.own.property("contestnumber");
-    });
-
-    it("Optional contestlastmilescore", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        //contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          //contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.CREATED);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.headers["content-location"]).to
-        .contain(`/api/contest/${response.body["contestnumber"]}`);
-      expect(response.body).to.have.own.property("contestnumber");
-    });
-
+    // save contestnumber to use later
+    contestnumberAlpha = parseInt(response.body["contestnumber"]);
   });
 
   describe("Negative testing", () => {
@@ -296,14 +132,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -317,14 +153,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -347,14 +183,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -368,14 +204,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -398,14 +234,14 @@ describe("Create contest testing scenarios", () => {
         //contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -419,65 +255,14 @@ describe("Create contest testing scenarios", () => {
           //contestduration,
           contestlastmileanswer,
           contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
           contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
           contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Missing contestlocalsite", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        //contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          //contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -500,14 +285,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         //contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -521,14 +306,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           //contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -551,14 +336,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         //contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -572,218 +357,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           //contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
+          contestmainsiteurl,
           contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Missing contestactive", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        //contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          //contestactive,
-          contestmainsite,
           contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Missing contestmainsite", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        //contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          //contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Missing contestkeys", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        //contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
           contestmainsite,
-          //contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Missing contestunlockkey", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        //contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
           contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
           contestactive,
-          contestmainsite,
-          contestkeys,
-          //contestunlockkey,
-          contestmainsiteurl,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -806,14 +387,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         //contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -827,14 +408,269 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           //contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Missing contestunlockkey", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        //contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          //contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Missing contestkeys", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        //contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          //contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Missing contestmainsite", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        //contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          //contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Missing contestlocalsite", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        //contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          //contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Missing contestactive", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        //contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          //contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -845,8 +681,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestnumber (min)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -857,14 +693,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -878,14 +714,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -896,8 +732,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestnumber (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -908,14 +744,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -929,14 +765,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -947,8 +783,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestname (min)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -960,14 +796,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -981,14 +817,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -999,8 +835,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestname (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1012,14 +848,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1033,14 +869,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1051,8 +887,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid conteststartdate (min)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1064,14 +900,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1085,14 +921,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1103,8 +939,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid conteststartdate (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1116,14 +952,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1137,14 +973,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1155,8 +991,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestduration (min)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1168,14 +1004,14 @@ describe("Create contest testing scenarios", () => {
         //contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1189,14 +1025,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1207,8 +1043,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestduration (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1220,14 +1056,14 @@ describe("Create contest testing scenarios", () => {
         //contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1241,14 +1077,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1259,8 +1095,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestlastmileanswer (min)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1272,14 +1108,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         //contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1293,14 +1129,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1311,8 +1147,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestlastmileanswer (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1324,14 +1160,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         //contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1345,14 +1181,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1363,8 +1199,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestlastmilescore (min)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1376,14 +1212,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         //contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1397,14 +1233,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1415,8 +1251,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestlastmilescore (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1428,14 +1264,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         //contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
         contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
         contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1449,118 +1285,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Invalid contestlocalsite (min)", async () => {
-      const token = await getToken(
-        pass + "",
-        salt + "",
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const contestlocalsite = 0;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        //contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
           contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
           contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Invalid contestlocalsite (max)", async () => {
-      const token = await getToken(
-        pass + "",
-        salt + "",
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const contestlocalsite = 4294967295;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        //contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1571,8 +1303,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestpenalty (min)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1584,14 +1316,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         //contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1605,14 +1337,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1623,8 +1355,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestpenalty (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1636,14 +1368,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         //contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1657,14 +1389,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1675,8 +1407,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestmaxfilesize (min)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1688,14 +1420,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         //contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1709,14 +1441,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1727,8 +1459,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestmaxfilesize (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1740,66 +1472,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         //contestmaxfilesize,
-        contestactive,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
         contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Invalid contestmainsite (min)", async () => {
-      const token = await getToken(
-        pass + "",
-        salt + "",
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const contestmainsite = 0;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
         contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
         contestactive,
-        //contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1813,118 +1493,14 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Invalid contestmainsite (max)", async () => {
-      const token = await getToken(
-        pass + "",
-        salt + "",
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const contestmainsite = 4294967295;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        //contestmainsite,
-        contestkeys,
-        contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
           contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
           contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Invalid contestunlockkey (max)", async () => {
-      const token = await getToken(
-        pass + "",
-        salt + "",
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const contestunlockkey = "sJ1BuyGEKMFKJ8O4eJ87gNnVmPbRFGZUYHXaIkoSiLyhpFAM00jrm41A1usy7T1h3sAEhadZeMJSEZNptzKBH8OUDT7PbpQSMIknA";
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        contestlocalsite,
-        contestpenalty,
-        contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        //contestunlockkey,
-        contestmainsiteurl,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          contestlocalsite,
-          contestpenalty,
-          contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
-          contestmainsiteurl,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1935,8 +1511,8 @@ describe("Create contest testing scenarios", () => {
 
     it("Invalid contestmainsiteurl (max)", async () => {
       const token = await getToken(
-        pass + "",
-        salt + "",
+        pass,
+        salt,
         "system"
       );
 
@@ -1948,14 +1524,14 @@ describe("Create contest testing scenarios", () => {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         //contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1969,20 +1545,605 @@ describe("Create contest testing scenarios", () => {
           contestduration,
           contestlastmileanswer,
           contestlastmilescore,
-          contestlocalsite,
           contestpenalty,
           contestmaxfilesize,
-          contestactive,
-          contestmainsite,
-          contestkeys,
-          contestunlockkey,
           contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
       expect(response.headers["content-type"]).to.contain("application/json");
       expect(response.body).to.have.own.property("error");
       expect(response.body).to.have.own.property("message");
+    });
+  
+    it("Invalid contestunlockkey (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const contestunlockkey = "sJ1BuyGEKMFKJ8O4eJ87gNnVmPbRFGZUYHXaIkoSiLyhpFAM00jrm41A1usy7T1h3sAEhadZeMJSEZNptzKBH8OUDT7PbpQSMIknA";
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        //contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestmainsite (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const contestmainsite = 0;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        //contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestmainsite (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const contestmainsite = 4294967295;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        //contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestlocalsite (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const contestlocalsite = 0;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        //contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestlocalsite (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const contestlocalsite = 4294967295;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        //contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of admin type has no permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin"
+      );
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send(createContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of team type has no permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "team1"
+      );
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send(createContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of judge type has no permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "judge1"
+      );
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send(createContestAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Contest already exists", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      // try to use contestnumber created in the first test
+      // if it did not work, this test will throw a bad request error
+      const contestnumber = contestnumberAlpha;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.ALREADY_EXISTS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+  });
+
+  describe("Positive testing", () => {
+
+    it("User of system type has permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.CREATED);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${response.body["contestnumber"]}`);
+      expect(response.body).to.have.own.property("contestnumber");
+
+      // save contestnumber for 'contest already exists' test
+      contestnumberAlpha = parseInt(response.body["contestnumber"]);
+    });
+
+    it("Optional contestnumber", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const contestnumber = 100;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        //contestlastmileanswer,
+        //contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestBetaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          //contestlastmileanswer,
+          //contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.CREATED);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${contestnumber}`);
+      expect(response.body).to.have.own.property("contestnumber");
+    });
+
+    it("Optional contestlastmileanswer", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        //contestlastmileanswer,
+        contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          //contestlastmileanswer,
+          contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.CREATED);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${response.body["contestnumber"]}`);
+      expect(response.body).to.have.own.property("contestnumber");
+    });
+
+    it("Optional contestlastmilescore", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      //const contestnumber = 1;
+      const {
+        contestname,
+        conteststartdate,
+        contestduration,
+        contestlastmileanswer,
+        //contestlastmilescore,
+        contestpenalty,
+        contestmaxfilesize,
+        contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
+      } = createContestAlphaPass;
+
+      const response = await request(URL)
+        .post("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          //contestnumber,
+          contestname,
+          conteststartdate,
+          contestduration,
+          contestlastmileanswer,
+          //contestlastmilescore,
+          contestpenalty,
+          contestmaxfilesize,
+          contestmainsiteurl,
+          contestunlockkey,
+          contestkeys,
+          contestmainsite,
+          contestlocalsite,
+          contestactive,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.CREATED);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${response.body["contestnumber"]}`);
+      expect(response.body).to.have.own.property("contestnumber");
     });
 
   });

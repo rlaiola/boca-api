@@ -24,6 +24,13 @@ import { Contest } from "../../entities/Contest";
 
 import { IContestsRepository } from "../../repositories/IContestsRepository";
 
+import { AuthPayload } from "../../shared/definitions/AuthPayload";
+import { UserType } from "../../shared/definitions/UserType";
+
+interface IRequest {
+  currUser: AuthPayload;
+}
+
 @injectable()
 class ListContestsUseCase {
   constructor(
@@ -31,8 +38,21 @@ class ListContestsUseCase {
     private contestsRepository: IContestsRepository
   ) {}
 
-  async execute(): Promise<Contest[]> {
-    return await this.contestsRepository.list();
+  async execute({ currUser }: IRequest): Promise<Contest[]> {
+    const all = await this.contestsRepository.list();
+    // filter contests by user
+    const allowed = all.filter(function(c) {
+      // no one sees fake contest
+      if (c.contestnumber == 0) return false;
+      // user of system type can see all other contests
+      else if (currUser.usertype == UserType.SYSTEM) return true;
+      // other user types see only the contest they are registered in
+      else if (c.contestnumber === currUser.contestnumber) return true;
+      // otherwise, they dont see it
+      else return false;
+    });
+    
+    return allowed;
   }
 }
 

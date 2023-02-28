@@ -33,14 +33,14 @@ interface IRequest {
   contestduration: number;
   contestlastmileanswer?: number;
   contestlastmilescore?: number;
-  contestlocalsite: number;
   contestpenalty: number;
   contestmaxfilesize: number;
-  contestactive: boolean;
-  contestmainsite: number;
-  contestkeys: string;
-  contestunlockkey: string;
   contestmainsiteurl: string;
+  contestunlockkey: string;
+  contestkeys: string;
+  contestmainsite: number;
+  contestlocalsite: number;
+  contestactive: boolean;
 }
 
 @injectable()
@@ -61,36 +61,36 @@ class UpdateContestUseCase {
     contestduration,
     contestlastmileanswer,
     contestlastmilescore,
-    contestlocalsite,
     contestpenalty,
     contestmaxfilesize,
-    contestactive,
-    contestmainsite,
-    contestkeys,
-    contestunlockkey,
     contestmainsiteurl,
+    contestunlockkey,
+    contestkeys,
+    contestmainsite,
+    contestlocalsite,
+    contestactive,
   }: IRequest): Promise<Contest> {
-    await this.contestValidator.exists(contestnumber);
+    const old = await this.contestValidator.exists(contestnumber);
 
-    const contest = new Contest(
+    const latest = new Contest(
       contestnumber,
-      contestname,
-      conteststartdate,
-      contestduration,
-      contestlastmileanswer,
-      contestlastmilescore,
-      contestlocalsite,
-      contestpenalty,
-      contestmaxfilesize,
-      contestactive,
-      contestmainsite,
-      contestkeys,
-      contestunlockkey,
-      contestmainsiteurl
+      contestname !== undefined ? contestname : old.contestname,
+      conteststartdate !== undefined ? conteststartdate : old.conteststartdate,
+      contestduration !== undefined ? contestduration : old.contestduration,
+      contestlastmileanswer !== undefined ? contestlastmileanswer : old.contestlastmileanswer,
+      contestlastmilescore !== undefined ? contestlastmilescore : old.contestlastmilescore,
+      contestpenalty !== undefined ? contestpenalty : old.contestpenalty,
+      contestmaxfilesize !== undefined ? contestmaxfilesize : old.contestmaxfilesize,
+      contestmainsiteurl !== undefined ? contestmainsiteurl : old.contestmainsiteurl,
+      contestunlockkey !== undefined ? contestunlockkey : old.contestunlockkey,
+      contestkeys !== undefined ? contestkeys : old.contestkeys,
+      contestmainsite !== undefined ? contestmainsite : old.contestmainsite,
+      contestlocalsite !== undefined ? contestlocalsite : old.contestlocalsite,
+      contestactive !== undefined ? contestactive : old.contestactive
     );
 
-    await this.contestValidator.isValid(contest);
-    return await this.contestsRepository.update({ ...contest });
+    await this.contestValidator.isValid(latest);
+    return await this.contestsRepository.update({ ...latest });
   }
 }
 

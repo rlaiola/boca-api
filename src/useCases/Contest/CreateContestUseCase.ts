@@ -35,14 +35,14 @@ interface IRequest {
   contestduration: number;
   contestlastmileanswer?: number;
   contestlastmilescore?: number;
-  contestlocalsite: number;
   contestpenalty: number;
   contestmaxfilesize: number;
-  contestactive: boolean;
-  contestmainsite: number;
-  contestkeys: string;
-  contestunlockkey: string;
   contestmainsiteurl: string;
+  contestunlockkey: string;
+  contestkeys: string;
+  contestmainsite: number;
+  contestlocalsite: number;
+  contestactive: boolean;
 }
 
 @injectable()
@@ -65,14 +65,14 @@ class CreateContestsUseCase {
     contestduration,
     contestlastmileanswer = 0,  // optional
     contestlastmilescore = 0,   // optional
-    contestlocalsite,
     contestpenalty,
     contestmaxfilesize,
-    contestactive,
-    contestmainsite,
-    contestkeys,
-    contestunlockkey,
     contestmainsiteurl,
+    contestunlockkey,
+    contestkeys,
+    contestmainsite,
+    contestlocalsite,
+    contestactive,
   }: IRequest): Promise<Contest> {
     if (contestnumber === undefined) {
       let lastId = await this.contestsRepository.getLastId();
@@ -93,14 +93,14 @@ class CreateContestsUseCase {
       contestduration,
       contestlastmileanswer,
       contestlastmilescore,
-      contestlocalsite,
       contestpenalty,
       contestmaxfilesize,
-      contestactive,
-      contestmainsite,
-      contestkeys,
+      contestmainsiteurl,
       contestunlockkey,
-      contestmainsiteurl
+      contestkeys,
+      contestmainsite,
+      contestlocalsite,
+      contestactive,
     );
 
     await this.contestValidator.isValid(contest);

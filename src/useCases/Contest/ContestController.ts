@@ -108,14 +108,14 @@ class ContestController {
       contestduration,
       contestlastmileanswer,
       contestlastmilescore,
-      contestlocalsite,
       contestpenalty,
       contestmaxfilesize,
-      contestactive,
-      contestmainsite,
-      contestkeys,
-      contestunlockkey,
       contestmainsiteurl,
+      contestunlockkey,
+      contestkeys,
+      contestmainsite,
+      contestlocalsite,
+      contestactive,
     } = request.body;
 
     try {
@@ -128,14 +128,14 @@ class ContestController {
         contestduration,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
         contestpenalty,
         contestmaxfilesize,
-        contestactive,
-        contestmainsite,
-        contestkeys,
-        contestunlockkey,
         contestmainsiteurl,
+        contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       });
 
       // add content-location http header to indicate how to access the new contest
@@ -160,20 +160,23 @@ class ContestController {
     // current user
     const userPayload: AuthPayload = request.body.authtoken;
 
-    const {
+    let {
       contestname,
-      contestactive,
+      conteststartdate,
       contestduration,
-      contestkeys,
       contestlastmileanswer,
       contestlastmilescore,
-      contestlocalsite,
-      contestmainsite,
-      contestmainsiteurl,
-      contestmaxfilesize,
       contestpenalty,
-      conteststartdate,
+      contestmaxfilesize,
+      contestlocalsite,
+      contestactive,
+    } = request.body;
+
+    const {
+      contestmainsiteurl,
       contestunlockkey,
+      contestkeys,
+      contestmainsite,
     } = request.body;
 
     try {
@@ -189,21 +192,38 @@ class ContestController {
         );
       }
 
+      // user of admin type can only edit a few properties
+      if (userPayload.usertype == UserType.ADMIN) {
+        contestname = undefined;
+        conteststartdate = undefined;
+        contestduration = undefined;
+        contestlastmileanswer = undefined;
+        contestlastmilescore = undefined;
+        contestpenalty = undefined;
+        contestmaxfilesize = undefined;
+        //contestmainsiteurl
+        //contestunlockkey
+        //contestkeys
+        //contestmainsite
+        contestlocalsite = undefined;
+        contestactive = undefined;
+      }
+
       await updateContestUseCase.execute({
         contestnumber,
         contestname,
-        contestactive,
+        conteststartdate,
         contestduration,
-        contestkeys,
         contestlastmileanswer,
         contestlastmilescore,
-        contestlocalsite,
-        contestmainsite,
-        contestmainsiteurl,
-        contestmaxfilesize,
         contestpenalty,
-        conteststartdate,
+        contestmaxfilesize,
+        contestmainsiteurl,
         contestunlockkey,
+        contestkeys,
+        contestmainsite,
+        contestlocalsite,
+        contestactive,
       });
 
       return response.status(HttpStatus.UPDATED).json();

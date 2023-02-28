@@ -72,12 +72,6 @@ class Contest {
 
   @Column("int4")
   @IsInt()
-  @IsPositive({ message: "contestlocalsite must be greater than zero" })
-  @Max(2147483647)
-  contestlocalsite!: number;
-
-  @Column("int4")
-  @IsInt()
   @Min(0)
   @Max(2147483647)
   contestpenalty!: number;
@@ -88,20 +82,11 @@ class Contest {
   @Max(2147483647)
   contestmaxfilesize!: number;
 
-  @Column("bool")
-  @IsBoolean()
-  contestactive!: boolean;
-
-  @Column("int4")
-  @IsInt()
-  @IsPositive({ message: "contestmainsite must be greater than zero" })
-  @Max(2147483647)
-  contestmainsite!: number;
-
-  @Column("text")
+  @Column("varchar", { length: 200 })
   @IsString()
   @MinLength(0)
-  contestkeys!: string;
+  @MaxLength(200)
+  contestmainsiteurl!: string;
 
   @Column("varchar", { length: 100 })
   @IsString()
@@ -109,11 +94,26 @@ class Contest {
   @MaxLength(100)
   contestunlockkey!: string;
 
-  @Column("varchar", { length: 200 })
+  @Column("text")
   @IsString()
   @MinLength(0)
-  @MaxLength(200)
-  contestmainsiteurl!: string;
+  contestkeys!: string;
+
+  @Column("int4")
+  @IsInt()
+  @IsPositive({ message: "contestmainsite must be greater than zero" })
+  @Max(2147483647)
+  contestmainsite!: number;
+
+  @Column("int4")
+  @IsInt()
+  @IsPositive({ message: "contestlocalsite must be greater than zero" })
+  @Max(2147483647)
+  contestlocalsite!: number;
+
+  @Column("bool")
+  @IsBoolean()
+  contestactive!: boolean;
 
   @Column("int4", { default: "EXTRACT(EPOCH FROM now())" })
   updatetime!: number;
@@ -125,14 +125,14 @@ class Contest {
     contestduration: number,
     contestlastmileanswer: number | undefined = undefined,
     contestlastmilescore: number | undefined = undefined,
-    contestlocalsite: number,
     contestpenalty: number,
     contestmaxfilesize: number,
-    contestactive: boolean,
-    contestmainsite: number,
-    contestkeys: string,
+    contestmainsiteurl: string,
     contestunlockkey: string,
-    contestmainsiteurl: string
+    contestkeys: string,
+    contestmainsite: number,
+    contestlocalsite: number,
+    contestactive: boolean,
   ) {
     this.contestnumber = contestnumber;
     this.contestname = contestname;
@@ -140,14 +140,14 @@ class Contest {
     this.contestduration = contestduration;
     this.contestlastmileanswer = contestlastmileanswer;
     this.contestlastmilescore = contestlastmilescore;
-    this.contestlocalsite = contestlocalsite;
     this.contestpenalty = contestpenalty;
     this.contestmaxfilesize = contestmaxfilesize;
-    this.contestactive = contestactive;
-    this.contestmainsite = contestmainsite;
-    this.contestkeys = contestkeys;
-    this.contestunlockkey = contestunlockkey;
     this.contestmainsiteurl = contestmainsiteurl;
+    this.contestunlockkey = contestunlockkey;
+    this.contestkeys = contestkeys;
+    this.contestmainsite = contestmainsite;
+    this.contestlocalsite = contestlocalsite;
+    this.contestactive = contestactive;
   }
 }
 
@@ -155,38 +155,33 @@ const createRequiredProperties = [
   "contestname",
   "conteststartdate",
   "contestduration",
-  "contestlocalsite",
   "contestpenalty",
   "contestmaxfilesize",
-  "contestactive",
-  "contestmainsite",
-  "contestkeys",
-  "contestunlockkey",
   "contestmainsiteurl",
+  "contestunlockkey",
+  "contestkeys",
+  "contestmainsite",
+  "contestlocalsite",
+  "contestactive",
 ];
 
 const updateRequiredProperties = [
   "contestname",
   "conteststartdate",
   "contestduration",
-  "contestlocalsite",
   "contestpenalty",
   "contestmaxfilesize",
-  "contestactive",
-  "contestmainsite",
-  "contestkeys",
-  "contestunlockkey",
   "contestmainsiteurl",
+  "contestunlockkey",
+  "contestkeys",
+  "contestmainsite",
+  "contestlocalsite",
+  "contestactive",
 ];
 
 const contestRequestSchema = {
   type: "object",
   properties: {
-    contestnumber: {
-      type: "number",
-      description: "Contest id",
-      minimum: 1,
-    },
     contestname: {
       type: "string",
       description: "Contest name",
@@ -229,16 +224,16 @@ const contestRequestSchema = {
       minLength: 0,
       maxLength: 200,
     },
-    contestkeys: {
-      type: "string",
-      description: "Keys (only use it within a secure network)",
-      minLength: 0,
-    },
     contestunlockkey: {
       type: "string",
       description: "Unlock password for problem files (only use it within a secure network)",
       minLength: 0,
       maxLength: 100,
+    },
+    contestkeys: {
+      type: "string",
+      description: "Keys (only use it within a secure network)",
+      minLength: 0,
     },
     contestmainsite: {
       type: "number",
@@ -260,6 +255,11 @@ const contestRequestSchema = {
 const contestResponseSchema = {
   ...contestRequestSchema,
   properties: {
+    contestnumber: {
+      type: "number",
+      description: "Contest id",
+      minimum: 1,
+    },
     ...contestRequestSchema.properties,
     updatetime: {
       type: "number",
@@ -271,12 +271,20 @@ const contestResponseSchema = {
 
 const createContestSchema = {
   ...contestRequestSchema,
+  properties: {
+    contestnumber: {
+      type: "number",
+      description: "Contest id",
+      minimum: 1,
+    },
+    ...contestRequestSchema.properties,
+  },
   required: createRequiredProperties,
 };
 
 const updateContestSchema = {
   ...contestRequestSchema,
-  required: updateRequiredProperties,
+  //required: updateRequiredProperties,
 };
 
 export {

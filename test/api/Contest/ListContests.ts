@@ -26,16 +26,17 @@ import { getToken } from "../../utils/common";
 import createContestAlphaPass from "../../entities/Contest/Pass/createContestAlpha.json";
 import createContestBetaPass from "../../entities/Contest/Pass/createContestBeta.json";
 
+import { Contest } from "../../../src/entities/Contest";
+
 import { HttpStatus } from "../../../src/shared/definitions/HttpStatusCodes";
 
-describe("Delete contest testing scenarios", () => {
+describe("List contests testing scenarios", () => {
   let host;
   let port;
   let URL: string;
   let pass: string;
   let salt: string;
   let contestnumberAlpha: number;
-  let contestnumberBeta: number;
 
   it('Setup', async () => {
     host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
@@ -103,16 +104,13 @@ describe("Delete contest testing scenarios", () => {
     expect(response.headers["content-location"]).to
       .contain(`/api/contest/${response.body["contestnumber"]}`);
     expect(response.body).to.have.own.property("contestnumber");
-
-    // save alpha's contestnumber
-    contestnumberBeta = parseInt(response.body["contestnumber"]);
   });
 
   describe("Negative testing", () => {
 
     it("Missing authentication header", async () => {
       const response = await request(URL)
-        .delete(`/api/contest/${contestnumberAlpha}`)
+        .get("/api/contest")
         .set("Accept", "application/json");
 
       expect(response.statusCode).to.equal(HttpStatus.UNAUTHORIZED);
@@ -123,121 +121,11 @@ describe("Delete contest testing scenarios", () => {
 
     it("Invalid access token", async () => {
       const response = await request(URL)
-        .delete(`/api/contest/${contestnumberAlpha}`)
+        .get("/api/contest")
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${pass}`);
 
       expect(response.statusCode).to.equal(HttpStatus.UNAUTHORIZED);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Invalid contestnumber (min)", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      const contestnumber = 0;
-      const response = await request(URL)
-        .delete(`/api/contest/${contestnumber}`)
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Invalid contestnumber (max)", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      const contestnumber = 4294967295;
-      const response = await request(URL)
-        .delete(`/api/contest/${contestnumber}`)
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("User of admin type has no permission", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "admin"
-      );
-
-      const response = await request(URL)
-        .delete(`/api/contest/${contestnumberAlpha}`)
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
-
-      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-  
-    it("User of team type has no permission", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "team1"
-      );
-
-      const response = await request(URL)
-        .delete(`/api/contest/${contestnumberAlpha}`)
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
-
-      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-  
-    it("User of judge type has no permission", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "judge1"
-      );
-
-      const response = await request(URL)
-        .delete(`/api/contest/${contestnumberAlpha}`)
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
-
-      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-  
-    it("Contest not found", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      const response = await request(URL)
-        .delete(`/api/contest/${contestnumberBeta + 1}`)
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
-
-      expect(response.statusCode).to.equal(HttpStatus.NOT_FOUND);
       expect(response.headers["content-type"]).to.contain("application/json");
       expect(response.body).to.have.own.property("error");
       expect(response.body).to.have.own.property("message");
@@ -255,13 +143,125 @@ describe("Delete contest testing scenarios", () => {
       );
 
       const response = await request(URL)
-        .delete(`/api/contest/${contestnumberBeta}`)
+        .get("/api/contest")
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`);
 
-      expect(response.statusCode).to.equal(HttpStatus.DELETED);
-      expect(response.headers).to.not.have.own.property("content-type");
-      expect(response.body).to.be.empty;
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.be.an("array");
+      // user can see 2 contests: alpha and beta
+      expect(response.body).to.have.lengthOf(2);
+      
+      const contestAlpha = response.body.find((contest: Contest) =>
+        contest.contestname.includes(createContestAlphaPass.contestname)
+      );
+
+      const contestBeta = response.body.find((contest: Contest) =>
+        contest.contestname.includes(createContestBetaPass.contestname)
+      );
+
+      expect(contestAlpha).to.be.an("object");
+      expect(contestAlpha).to.have.own.property("contestnumber");
+      expect(contestAlpha.contestnumber).to.deep.equal(contestnumberAlpha);
+      expect(contestBeta).to.be.an("object");
+      expect(contestBeta).to.have.own.property("contestnumber");
+    });
+
+    it("User of admin type has permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin"
+      );
+
+      const response = await request(URL)
+        .get("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.be.an("array");
+      // user can see 1 contest: alpha
+      expect(response.body).to.have.lengthOf(1);
+      
+      const contestAlpha = response.body.find((contest: Contest) =>
+        contest.contestname.includes(createContestAlphaPass.contestname)
+      );
+
+      const contestBeta = response.body.find((contest: Contest) =>
+        contest.contestname.includes(createContestBetaPass.contestname)
+      );
+
+      expect(contestAlpha).to.be.an("object");
+      expect(contestAlpha).to.have.own.property("contestnumber");
+      expect(contestAlpha.contestnumber).to.deep.equal(contestnumberAlpha);
+      expect(contestBeta).to.be.undefined;
+    });
+
+    it("User of team type has permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "team"
+      );
+
+      const response = await request(URL)
+        .get("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.be.an("array");
+      // user can see 1 contest: alpha
+      expect(response.body).to.have.lengthOf(1);
+      
+      const contestAlpha = response.body.find((contest: Contest) =>
+        contest.contestname.includes(createContestAlphaPass.contestname)
+      );
+
+      const contestBeta = response.body.find((contest: Contest) =>
+        contest.contestname.includes(createContestBetaPass.contestname)
+      );
+
+      expect(contestAlpha).to.be.an("object");
+      expect(contestAlpha).to.have.own.property("contestnumber");
+      expect(contestAlpha.contestnumber).to.deep.equal(contestnumberAlpha);
+      expect(contestBeta).to.be.undefined;
+    });
+
+    it("User of judge type has permission", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "judge"
+      );
+
+      const response = await request(URL)
+        .get("/api/contest")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.be.an("array");
+      // user can see 1 contest: alpha
+      expect(response.body).to.have.lengthOf(1);
+      
+      const contestAlpha = response.body.find((contest: Contest) =>
+        contest.contestname.includes(createContestAlphaPass.contestname)
+      );
+
+      const contestBeta = response.body.find((contest: Contest) =>
+        contest.contestname.includes(createContestBetaPass.contestname)
+      );
+
+      expect(contestAlpha).to.be.an("object");
+      expect(contestAlpha).to.have.own.property("contestnumber");
+      expect(contestAlpha.contestnumber).to.deep.equal(contestnumberAlpha);
+      expect(contestBeta).to.be.undefined;
     });
 
   });
