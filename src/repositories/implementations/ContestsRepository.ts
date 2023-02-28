@@ -79,6 +79,19 @@ class ContestsRepository implements IContestsRepository {
   async create(createObject: ICreateContestDTO): Promise<Contest> {
     const contest = this.repository.create(createObject);
     await this.repository.save(contest);
+
+    // if the new contest is active, deactivate other ones (if any active)
+    if (contest.contestactive === true) {
+      await this.repository
+        .createQueryBuilder()
+        .update(Contest)
+        .set({ contestactive: false})
+        .where("contestactive = TRUE AND contestnumber <> :contestnumber", {
+          contestnumber: contest.contestnumber,
+      })
+      .execute();
+    }
+
     return contest;
   }
 
@@ -94,6 +107,19 @@ class ContestsRepository implements IContestsRepository {
       .execute();
 
     const updatedContest: Record<string, unknown> = result.raw[0];
+
+    // if the updated contest is active, deactivate other ones (if any active)
+    if (updatedContest.contestactive === true) {
+      await this.repository
+        .createQueryBuilder()
+        .update(Contest)
+        .set({ contestactive: false})
+        .where("contestactive = TRUE AND contestnumber <> :contestnumber", {
+          contestnumber: updateObject.contestnumber,
+      })
+      .execute();
+    }
+
     return this.repository.create(updatedContest);
   }
 
