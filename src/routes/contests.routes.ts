@@ -141,8 +141,8 @@ contestsRoutes.get(
  *       The user of _system_ type only has permission for this operation. All
  *       properties are required, with the exception of *contestnumber*,
  *       *contestlastmileanswer*, and *contestlastmilescore*. If supplied, 
- *       *contestnumber* will be used only if that value has not been assigned
- *       to another contest.
+ *       *contestnumber* will be used only if the value has not already been
+ *       assigned to another contest.
  *     operationId: createContest
  *     security:
  *       - bearerAuth: []
