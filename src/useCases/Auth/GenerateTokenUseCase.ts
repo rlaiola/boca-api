@@ -150,7 +150,8 @@ class GenerateTokenUseCase {
             console.log(`'${name}' user found in local site (${site.sitenumber}) of active contest (${contest.contestnumber})`);
 
             // the hash of team type users start with a "!"
-            const hashedPassword = user.usertype === UserType.TEAM ?
+            const hashedPassword = user.usertype === UserType.TEAM ||
+                                   user.usertype === UserType.JUDGE ?
                                      user.userpassword?.replace("!", "") : 
                                      user.userpassword;
             const saltedHash = createHash("sha256")
