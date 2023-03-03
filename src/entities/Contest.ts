@@ -179,6 +179,18 @@ const updateRequiredProperties = [
   "contestactive",
 ];
 
+const contestPKSchema = {
+  type: "object",
+  properties: {
+    contestnumber: {
+      type: "number",
+      description: "Contest id",
+      minimum: 1,
+      maximum: 2147483647,
+    },
+  },
+};
+
 const contestRequestSchema = {
   type: "object",
   properties: {
@@ -192,31 +204,37 @@ const contestRequestSchema = {
       type: "number",
       description: "Unix timestamp of contest start date",
       minimum: 0,
+      maximum: 2147483647,
     },
     contestduration: {
       type: "number",
       description: "Contest duration (in seconds)",
       minimum: 1,
+      maximum: 2147483647,
     },
     contestlastmileanswer: {
       type: "number",
       description: "Elapsed time from contest start date to stop answering runs (in seconds)",
       minimum: 0,
+      maximum: 2147483647,
     },
     contestlastmilescore: {
       type: "number",
       description: "Elapsed time from contest start date to stop updating scoreboard (in seconds)",
       minimum: 0,
+      maximum: 2147483647,
     },
     contestpenalty: {
       type: "number",
       description: "Time penalty for failed runs (in seconds)",
       minimum: 0,
+      maximum: 2147483647,
     },
     contestmaxfilesize: {
       type: "number",
       description: "Max file size allowed for teams (in KB)",
       minimum: 1,
+      maximum: 2147483647,
     },
     contestmainsiteurl: {
       type: "string",
@@ -239,11 +257,13 @@ const contestRequestSchema = {
       type: "number",
       description: "Main site id",
       minimum: 1,
+      maximum: 2147483647,
     },
     contestlocalsite: {
       type: "number",
       description: "Local site id",
       minimum: 1,
+      maximum: 2147483647,
     },
     contestactive: {
       type: "boolean",
@@ -253,13 +273,10 @@ const contestRequestSchema = {
 };
 
 const contestResponseSchema = {
+  ...contestPKSchema,
   ...contestRequestSchema,
   properties: {
-    contestnumber: {
-      type: "number",
-      description: "Contest id",
-      minimum: 1,
-    },
+    ...contestPKSchema.properties,
     ...contestRequestSchema.properties,
     updatetime: {
       type: "number",
@@ -270,13 +287,10 @@ const contestResponseSchema = {
 };
 
 const createContestSchema = {
+  ...contestPKSchema,
   ...contestRequestSchema,
   properties: {
-    contestnumber: {
-      type: "number",
-      description: "Contest id",
-      minimum: 1,
-    },
+    ...contestPKSchema.properties,
     ...contestRequestSchema.properties,
   },
   required: createRequiredProperties,
@@ -289,9 +303,9 @@ const updateContestSchema = {
 
 export {
   Contest,
-  contestResponseSchema,
   createRequiredProperties,
   updateRequiredProperties,
+  contestResponseSchema,
   createContestSchema,
   updateContestSchema,
 };

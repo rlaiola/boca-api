@@ -37,7 +37,8 @@ describe("Delete contest testing scenarios", () => {
   let contestnumberAlpha: number;
   let contestnumberBeta: number;
 
-  it('Setup', async () => {
+  // setup environment before tests
+  before(async () => {
     host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
     port = process.env.BOCA_API_PORT ? process.env.BOCA_API_PORT : "3000";
     URL = host + ":" + port;
@@ -68,7 +69,8 @@ describe("Delete contest testing scenarios", () => {
       const resp = await request(URL)
         .delete(`/api/contest/${k}`)
         .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
+        .set("Authorization", `Bearer ${token}`)
+        .send();
 
         expect(resp.statusCode).to.equal(HttpStatus.DELETED);
         expect(resp.headers).to.not.have.own.property("content-type");
@@ -104,7 +106,7 @@ describe("Delete contest testing scenarios", () => {
       .contain(`/api/contest/${response.body["contestnumber"]}`);
     expect(response.body).to.have.own.property("contestnumber");
 
-    // save alpha's contestnumber
+    // save beta's contestnumber
     contestnumberBeta = parseInt(response.body["contestnumber"]);
   });
 
@@ -171,7 +173,7 @@ describe("Delete contest testing scenarios", () => {
       expect(response.body).to.have.own.property("message");
     });
 
-    it("User of admin type has no permission", async () => {
+    it("User of admin type has no permission (Alpha)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -189,7 +191,7 @@ describe("Delete contest testing scenarios", () => {
       expect(response.body).to.have.own.property("message");
     });
   
-    it("User of team type has no permission", async () => {
+    it("User of team type has no permission (Alpha)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -207,7 +209,7 @@ describe("Delete contest testing scenarios", () => {
       expect(response.body).to.have.own.property("message");
     });
   
-    it("User of judge type has no permission", async () => {
+    it("User of judge type has no permission (Alpha)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -224,7 +226,61 @@ describe("Delete contest testing scenarios", () => {
       expect(response.body).to.have.own.property("error");
       expect(response.body).to.have.own.property("message");
     });
+
+    it("User of admin type has no permission (Beta)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin"
+      );
+
+      const response = await request(URL)
+        .delete(`/api/contest/${contestnumberBeta}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
   
+    it("User of team type has no permission (Beta)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "team1"
+      );
+
+      const response = await request(URL)
+        .delete(`/api/contest/${contestnumberBeta}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+  
+    it("User of judge type has no permission (Beta)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "judge1"
+      );
+
+      const response = await request(URL)
+        .delete(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
     it("Contest not found", async () => {
       const token = await getToken(
         pass,
@@ -247,7 +303,24 @@ describe("Delete contest testing scenarios", () => {
 
   describe("Positive testing", () => {
 
-    it("User of system type has permission", async () => {
+    it("User of system type has permission (Alpha)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const response = await request(URL)
+        .delete(`/api/contest/${contestnumberAlpha}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).to.equal(HttpStatus.DELETED);
+      expect(response.headers).to.not.have.own.property("content-type");
+      expect(response.body).to.be.empty;
+    });
+
+    it("User of system type has permission (Beta)", async () => {
       const token = await getToken(
         pass,
         salt,

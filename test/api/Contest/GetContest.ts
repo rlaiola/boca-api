@@ -37,7 +37,8 @@ describe("Get contest testing scenarios", () => {
   let contestnumberAlpha: number;
   let contestnumberBeta: number;
 
-  it('Setup', async () => {
+  // setup environment before tests
+  before(async () => {
     host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
     port = process.env.BOCA_API_PORT ? process.env.BOCA_API_PORT : "3000";
     URL = host + ":" + port;
@@ -268,26 +269,6 @@ describe("Get contest testing scenarios", () => {
       expect(response.body.contestname).to.deep.equal(createContestAlphaPass.contestname);
     });
 
-    it("User of system type has permission (Beta)", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      const response = await request(URL)
-        .get(`/api/contest/${contestnumberBeta}`)
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
-
-      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.be.an("object");
-      expect(response.body).to.have.own.property("contestnumber");
-      expect(response.body.contestnumber).to.deep.equal(contestnumberBeta);
-      expect(response.body.contestname).to.deep.equal(createContestBetaPass.contestname);
-    });
-
     it("User of admin type has permission (Alpha)", async () => {
       const token = await getToken(
         pass,
@@ -349,6 +330,26 @@ describe("Get contest testing scenarios", () => {
         expect(response.body).to.have.own.property("contestnumber");
         expect(response.body.contestnumber).to.deep.equal(contestnumberAlpha);
         expect(response.body.contestname).to.deep.equal(createContestAlphaPass.contestname);
+    });
+
+    it("User of system type has permission (Beta)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system"
+      );
+
+      const response = await request(URL)
+        .get(`/api/contest/${contestnumberBeta}`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.be.an("object");
+      expect(response.body).to.have.own.property("contestnumber");
+      expect(response.body.contestnumber).to.deep.equal(contestnumberBeta);
+      expect(response.body.contestname).to.deep.equal(createContestBetaPass.contestname);
     });
 
   });

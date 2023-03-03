@@ -48,11 +48,13 @@ class ContestController {
     const listContestsUseCase = container.resolve(ListContestsUseCase);
 
     // current user
-    const currUser: AuthPayload = request.body.authtoken;
+    const userPayload: AuthPayload = request.body.authtoken;
 
     try {
-      const all = await listContestsUseCase.execute({ currUser });
-      return response.json(all);
+      const all = await listContestsUseCase.execute({ currUser: userPayload });
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(all);
     } catch (error) {
       next(error);
     }
@@ -87,7 +89,9 @@ class ContestController {
       // otherwise, retrieve contest
       const contest = await getContestsUseCase.execute({ contestnumber });
 
-      return response.status(HttpStatus.SUCCESS).json(contest);
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(contest);
     } catch (error) {
       next(error);
     }
@@ -139,8 +143,10 @@ class ContestController {
       });
 
       // add content-location http header to indicate how to access the new contest
-      return response.setHeader('Content-Location', `/api/contest/${contest.contestnumber}`)
-                     .status(HttpStatus.CREATED).json(contest);
+      return response
+        .setHeader('Content-Location', `/api/contest/${contest.contestnumber}`)
+        .status(HttpStatus.CREATED)
+        .json(contest);
     } catch (error) {console.log(error);
       next(error);
     }
@@ -226,7 +232,9 @@ class ContestController {
         contestactive,
       });
 
-      return response.status(HttpStatus.UPDATED).json();
+      return response
+        .status(HttpStatus.UPDATED)
+        .json();
     } catch (error) {
       next(error);
     }
@@ -255,7 +263,9 @@ class ContestController {
 
       await deleteContestsUseCase.execute({ contestnumber: contestnumber });
 
-      return response.status(HttpStatus.DELETED).json();
+      return response
+        .status(HttpStatus.DELETED)
+        .json();
     } catch (error) {
       next(error);
     }

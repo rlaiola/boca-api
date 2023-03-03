@@ -37,8 +37,10 @@ describe("List contests testing scenarios", () => {
   let pass: string;
   let salt: string;
   let contestnumberAlpha: number;
+  let contestnumberBeta: number;
 
-  it('Setup', async () => {
+  // setup environment before tests
+  before(async () => {
     host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
     port = process.env.BOCA_API_PORT ? process.env.BOCA_API_PORT : "3000";
     URL = host + ":" + port;
@@ -69,7 +71,8 @@ describe("List contests testing scenarios", () => {
       const resp = await request(URL)
         .delete(`/api/contest/${k}`)
         .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`);
+        .set("Authorization", `Bearer ${token}`)
+        .send();
 
         expect(resp.statusCode).to.equal(HttpStatus.DELETED);
         expect(resp.headers).to.not.have.own.property("content-type");
@@ -104,6 +107,9 @@ describe("List contests testing scenarios", () => {
     expect(response.headers["content-location"]).to
       .contain(`/api/contest/${response.body["contestnumber"]}`);
     expect(response.body).to.have.own.property("contestnumber");
+
+    // save beta's contestnumber
+    contestnumberBeta = parseInt(response.body["contestnumber"]);
   });
 
   describe("Negative testing", () => {
