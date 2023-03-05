@@ -4,3 +4,4 @@ dist
 *.log
 temp
 secrets
+.DS_Store
