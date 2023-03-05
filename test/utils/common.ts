@@ -18,11 +18,33 @@
 //
 //========================================================================
 
+import {Client} from "pg";
+import * as fs from "fs";
+
 import { expect } from "chai";
 import { createHash } from "crypto";
 import request from "supertest";
 
 import { URL } from "./URL";
+
+const initdb = async () => {
+  const client = new Client({
+    host: process.env.BOCA_DB_HOST ? process.env.BOCA_DB_HOST : "localhost",
+    user: process.env.BOCA_DB_USER ? process.env.BOCA_DB_USER : "bocauser",
+    database: process.env.BOCA_DB_NAME ? process.env.BOCA_DB_NAME : "bocadb",
+    password: process.env.BOCA_DB_PASSWORD ? process.env.BOCA_DB_PASSWORD : "dAm0HAiC",
+    port: process.env.BOCA_DB_PORT ? parseInt(process.env.BOCA_DB_PORT) : 5432,
+  });
+
+  const sql = fs.readFileSync('./test/utils/initdb.sql').toString();
+
+  await client.connect();
+  await client.query(sql, (err, res) => {
+    if (err) throw err
+    //console.log(res)
+    client.end()
+  });
+};
 
 const getToken = async (
   password: string,
@@ -57,4 +79,4 @@ const getToken = async (
   return token;
 };
 
-export { getToken };
+export { initdb, getToken };

@@ -21,7 +21,7 @@
 import { expect } from "chai";
 import request from "supertest";
 
-import { getToken } from "../../utils/common";
+import { initdb, getToken } from "../../utils/common";
 
 import createContestAlphaPass from "../../entities/Contest/Pass/createContestAlpha.json";
 import createContestBetaPass from "../../entities/Contest/Pass/createContestBeta.json";
@@ -47,69 +47,10 @@ describe("List contests testing scenarios", () => {
     pass = process.env.BOCA_PASSWORD ? process.env.BOCA_PASSWORD : "boca";
     salt = process.env.BOCA_KEY ? process.env.BOCA_KEY : "v512nj18986j8t9u1puqa2p9mh";
 
-    const token = await getToken(
-      pass,
-      salt,
-      "system"
-    );
+    initdb();
 
-    // get all contests
-    let response = await request(URL)
-      .get("/api/contest")
-      .set("Accept", "application/json")
-      .set("Authorization", `Bearer ${token}`);
-
-    expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
-    expect(response.headers["content-type"]).to.contain("application/json");
-    expect(response.body).to.be.an("array");
-
-    // and delete them 
-    const all = response.body;
-    const n = all.length;
-    for (let i = 0; i < n; i++) {
-      const k = all[i].contestnumber;
-      const resp = await request(URL)
-        .delete(`/api/contest/${k}`)
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send();
-
-        expect(resp.statusCode).to.equal(HttpStatus.DELETED);
-        expect(resp.headers).to.not.have.own.property("content-type");
-        expect(resp.body).to.be.empty;
-    }
-
-    // create alpha contest
-    response = await request(URL)
-      .post("/api/contest")
-      .set("Accept", "application/json")
-      .set("Authorization", `Bearer ${token}`)
-      .send(createContestAlphaPass);
-
-    expect(response.statusCode).to.equal(HttpStatus.CREATED);
-    expect(response.headers["content-type"]).to.contain("application/json");
-    expect(response.headers["content-location"]).to
-      .contain(`/api/contest/${response.body["contestnumber"]}`);
-    expect(response.body).to.have.own.property("contestnumber");
-
-    // save alpha's contestnumber
-    contestnumberAlpha = parseInt(response.body["contestnumber"]);
-    
-    // create beta contest
-    response = await request(URL)
-      .post("/api/contest")
-      .set("Accept", "application/json")
-      .set("Authorization", `Bearer ${token}`)
-      .send(createContestBetaPass);
-    
-    expect(response.statusCode).to.equal(HttpStatus.CREATED);
-    expect(response.headers["content-type"]).to.contain("application/json");
-    expect(response.headers["content-location"]).to
-      .contain(`/api/contest/${response.body["contestnumber"]}`);
-    expect(response.body).to.have.own.property("contestnumber");
-
-    // save beta's contestnumber
-    contestnumberBeta = parseInt(response.body["contestnumber"]);
+    contestnumberAlpha = 1;
+    contestnumberBeta = 2;
   });
 
   describe("Negative testing", () => {
@@ -172,6 +113,7 @@ describe("List contests testing scenarios", () => {
       expect(contestAlpha.contestnumber).to.deep.equal(contestnumberAlpha);
       expect(contestBeta).to.be.an("object");
       expect(contestBeta).to.have.own.property("contestnumber");
+      expect(contestBeta.contestnumber).to.deep.equal(contestnumberBeta);
     });
 
     it("User of admin type has permission", async () => {
@@ -210,7 +152,7 @@ describe("List contests testing scenarios", () => {
       const token = await getToken(
         pass,
         salt,
-        "team"
+        "team1"
       );
 
       const response = await request(URL)
@@ -242,7 +184,7 @@ describe("List contests testing scenarios", () => {
       const token = await getToken(
         pass,
         salt,
-        "judge"
+        "judge1"
       );
 
       const response = await request(URL)
