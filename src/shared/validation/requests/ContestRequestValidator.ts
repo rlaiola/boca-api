@@ -21,8 +21,8 @@
 import { injectable } from "tsyringe";
 
 import {
-  createRequiredProperties,
-  updateRequiredProperties,
+  createContestRequiredProperties,
+  updateContestRequiredProperties,
 } from "../../../entities/Contest";
 
 import { RequestValidator } from "./RequestValidator";
@@ -30,11 +30,11 @@ import { RequestValidator } from "./RequestValidator";
 @injectable()
 class ContestRequestValidator extends RequestValidator {
   hasRequiredCreateProperties(request: object): void {
-    this.hasRequiredProperties(request, createRequiredProperties);
+    this.hasRequiredProperties(request, createContestRequiredProperties);
   }
 
   hasRequiredUpdateProperties(request: object): void {
-    this.hasRequiredProperties(request, updateRequiredProperties);
+    this.hasRequiredProperties(request, updateContestRequiredProperties);
   }
 }
 

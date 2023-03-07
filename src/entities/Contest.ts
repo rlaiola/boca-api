@@ -151,7 +151,7 @@ class Contest {
   }
 }
 
-const createRequiredProperties = [
+const createContestRequiredProperties = [
   "contestname",
   "conteststartdate",
   "contestduration",
@@ -165,7 +165,7 @@ const createRequiredProperties = [
   "contestactive",
 ];
 
-const updateRequiredProperties = [
+const updateContestRequiredProperties = [
   "contestname",
   "conteststartdate",
   "contestduration",
@@ -293,18 +293,18 @@ const createContestSchema = {
     ...contestPKSchema.properties,
     ...contestRequestSchema.properties,
   },
-  required: createRequiredProperties,
+  required: createContestRequiredProperties,
 };
 
 const updateContestSchema = {
   ...contestRequestSchema,
-  //required: updateRequiredProperties,
+  //required: updateContestRequiredProperties,
 };
 
 export {
   Contest,
-  createRequiredProperties,
-  updateRequiredProperties,
+  createContestRequiredProperties,
+  updateContestRequiredProperties,
   contestResponseSchema,
   createContestSchema,
   updateContestSchema,
