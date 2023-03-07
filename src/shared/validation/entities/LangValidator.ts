@@ -49,6 +49,20 @@ class LangValidator extends EntityValidator<Lang> {
 
     return existingLang;
   }
+
+  async notexists(contestnumber: number, langnumber: number): Promise<undefined> {
+    const existingLang = await this.langRepository.getById(
+      contestnumber,
+      langnumber
+    );
+
+    if (existingLang) {
+      throw ApiError.alreadyExists("Language already exists");
+    }
+
+    return undefined;
+  }
+
 }
 
 export default LangValidator;
