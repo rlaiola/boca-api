@@ -187,7 +187,6 @@ class ContestController {
 
     try {
       idValidator.isContestId(contestnumber);
-      //contestRequestValidator.hasRequiredUpdateProperties(request.body);
 
       // check whether it's the fake contest or the user is of admin type
       // and the contest is not the one the user is currently registered in
