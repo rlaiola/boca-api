@@ -71,7 +71,6 @@ class Lang {
 }
 
 const createLangRequiredProperties = [
-  "contestnumber",
   "langname",
   "langextension",
 ];

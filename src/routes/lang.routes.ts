@@ -192,7 +192,6 @@ langRoutes.get(
  *             language:
  *               summary: An example of language
  *               value:
- *                 contestnumber: 1
  *                 langname: "Python3"
  *                 langextension: "py3"
  *     responses:

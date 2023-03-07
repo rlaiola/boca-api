@@ -100,7 +100,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           //langname,
           langextension,
@@ -131,7 +130,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           //langextension,
@@ -162,7 +160,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -193,7 +190,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -224,7 +220,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           langnumber,
           langname,
           langextension,
@@ -255,7 +250,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           langnumber,
           langname,
           langextension,
@@ -287,7 +281,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -319,7 +312,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -351,7 +343,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -383,7 +374,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -414,7 +404,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -445,7 +434,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -476,7 +464,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -507,7 +494,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -538,7 +524,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -569,7 +554,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -600,7 +584,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -631,7 +614,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           langnumber,
           langname,
           langextension,
@@ -666,7 +648,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           //langnumber,
           langname,
           langextension,
@@ -704,7 +685,6 @@ describe("Create contest testing scenarios", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
-          contestnumber,
           langnumber,
           langname,
           langextension,
