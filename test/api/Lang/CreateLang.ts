@@ -21,125 +21,708 @@
 import { expect } from "chai";
 import request from "supertest";
 
-import { URL } from "../../utils/URL";
-import { getToken } from "../../utils/common";
+import { initdb, getToken } from "../../utils/common";
 
-import createLang1Pass from "../../entities/Lang/Pass/createLang1.json";
-import createLang2Pass from "../../entities/Lang/Pass/createLang2.json";
-import createLang3Pass from "../../entities/Lang/Pass/createLang3.json";
+import createLangAlphaPass from "../../entities/Lang/Pass/createLang1.json";
+import createLangBetaPass from "../../entities/Lang/Pass/createLang2.json";
+import createLangGammaPass from "../../entities/Lang/Pass/createLang3.json";
 
-import createLang4Fail from "../../entities/Lang/Fail/createLang4.json";
-import createLang5Fail from "../../entities/Lang/Fail/createLang5.json";
-import createLang6Fail from "../../entities/Lang/Fail/createLang6.json";
+import { HttpStatus } from "../../../src/shared/definitions/HttpStatusCodes";
 
-describe("Criação de uma linguagem", () => {
-  let adminToken: string;
+describe("Create contest testing scenarios", () => {
+  let host;
+  let port;
+  let URL: string;
+  let pass: string;
+  let salt: string;
+  let contestnumberAlpha: number;
+  let contestnumberBeta: number;
+  let langnumberGamma: number;
 
-  it('Faz login no User "admin"', async () => {
-    adminToken = await getToken("boca", "v512nj18986j8t9u1puqa2p9mh", "admin");
+  // setup environment before tests
+  before(async () => {
+    host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
+    port = process.env.BOCA_API_PORT ? process.env.BOCA_API_PORT : "3000";
+    URL = host + ":" + port;
+    pass = process.env.BOCA_PASSWORD ? process.env.BOCA_PASSWORD : "boca";
+    salt = process.env.BOCA_KEY ? process.env.BOCA_KEY : "v512nj18986j8t9u1puqa2p9mh";
+
+    initdb();
+
+    contestnumberAlpha = 1;
+    contestnumberBeta = 2;
+    langnumberGamma = 1;
   });
 
-  describe("Fluxo positivo", () => {
-    it('Cria a linguagem "C" para o "Contest Beta"', async () => {
-      const response = await request(URL)
-        .post("/api/contest/2/language")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`)
-        .send(createLang1Pass);
+  describe("Negative testing", () => {
 
-      expect(response.statusCode).to.equal(200);
+    it("Missing authentication header", async () => {
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumberAlpha}/language`)
+        .set("Accept", "application/json")
+        .send(createLangAlphaPass);
+
+      expect(response.statusCode).to.equal(HttpStatus.UNAUTHORIZED);
       expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.deep.include(createLang1Pass);
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
     });
 
-    it('Cria a linguagem "Java" para o "Contest Beta"', async () => {
+    it("Invalid access token", async () => {
       const response = await request(URL)
-        .post("/api/contest/2/language")
+        .post(`/api/contest/${contestnumberAlpha}/language`)
         .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`)
-        .send(createLang2Pass);
+        .set("Authorization", `Bearer ${pass}`)
+        .send(createLangAlphaPass);
 
-      expect(response.statusCode).to.equal(200);
+      expect(response.statusCode).to.equal(HttpStatus.UNAUTHORIZED);
       expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.deep.include(createLang2Pass);
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
     });
 
-    it('Cria a linguagem "PostgreSQL_v10" para o "Contest Beta"', async () => {
-      const response = await request(URL)
-        .post("/api/contest/2/language")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`)
-        .send(createLang3Pass);
+    it("Missing langname", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
 
-      expect(response.statusCode).to.equal(200);
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const {
+        //langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          //langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
       expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.deep.include(createLang3Pass);
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
     });
 
-    it("Resgata a primeira das três linguagens criadas anteriormente", async () => {
-      const response = await request(URL)
-        .get("/api/contest/2/language/1")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`);
+    it("Missing langextension", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
 
-      expect(response.statusCode).to.equal(200);
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const {
+        langname,
+        //langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          //langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
       expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("langnumber");
-      expect(response.body["langnumber"]).to.equal(1);
-      expect(response.body).to.deep.include(createLang1Pass);
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
     });
+
+    it("Invalid contestnumber (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = 0;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid contestnumber (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = 4294967295;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid langnumber (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      const langnumber = 0;
+      const {
+        langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid langnumber (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      const langnumber = 4294967295;
+      const {
+        langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+    
+    it("Invalid langname (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const langname = "";
+      const {
+        //langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid langname (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const langname = "biPvtNJy87tcISIfdwhalFTUK5eTcO5zVa59wynQCOXKQ8l8e17";
+      const {
+        //langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid langextension (min)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const langextension = "";
+      const {
+        langname,
+        //langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Invalid langextension (max)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const langextension = "biPvtNJy87tcISIfdwhalFTUK5eTcO5zVa59wynQCOXKQ8l8e17";
+      const {
+        langname,
+        //langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of system type has no permission (Alpha)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of team type has no permission (Alpha)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "team1",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of judge type has no permission (Alpha)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "judge1",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of system type has no permission (Beta)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "system",
+      );
+
+      const contestnumber = contestnumberBeta;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangBetaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of admin type has no permission (Beta)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberBeta;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangBetaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of team type has no permission (Beta)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "team1",
+      );
+
+      const contestnumber = contestnumberBeta;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangBetaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("User of judge type has no permission (Beta)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "judge1",
+      );
+
+      const contestnumber = contestnumberBeta;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangBetaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
+    it("Language already exists", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin"
+      );
+
+      const contestnumber = contestnumberAlpha;
+      const langnumber = langnumberGamma;
+      const {
+        langname,
+        langextension,
+      } = createLangAlphaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.ALREADY_EXISTS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.body).to.have.own.property("error");
+      expect(response.body).to.have.own.property("message");
+    });
+
   });
 
-  describe("Fluxo negativo", () => {
-    it("Tenta criar uma linguagem para um contest que não existe", async () => {
-      const response = await request(URL)
-        .post("/api/contest/3/language")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`)
-        .send(createLang4Fail);
+  describe("Positive testing", () => {
 
-      expect(response.statusCode).to.equal(404);
+    it("User of admin type has permission (Alpha)", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      //const langnumber = 1;
+      const {
+        langname,
+        langextension,
+      } = createLangGammaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          //langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.CREATED);
       expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include("Contest does not exist");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${response.body["contestnumber"]}/language/${response.body["langnumber"]}`);
+      expect(response.body).to.deep.equal({
+        contestnumber: contestnumberAlpha,
+        langnumber: response.body["langnumber"],
+        langname: langname,
+        langextension: langextension,
+        updatetime: response.body["updatetime"],
+      });
+    });
+  
+    it("Optional langnumber", async () => {
+      const token = await getToken(
+        pass,
+        salt,
+        "admin",
+      );
+
+      const contestnumber = contestnumberAlpha;
+      const langnumber = 100;
+      const {
+        langname,
+        langextension,
+      } = createLangBetaPass;
+
+      const response = await request(URL)
+        .post(`/api/contest/${contestnumber}/language`)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          contestnumber,
+          langnumber,
+          langname,
+          langextension,
+        });
+
+      expect(response.statusCode).to.equal(HttpStatus.CREATED);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["content-location"]).to
+        .contain(`/api/contest/${response.body["contestnumber"]}/language/${response.body["langnumber"]}`);
+      expect(response.body).to.deep.equal({
+        contestnumber: contestnumberAlpha,
+        langnumber: response.body["langnumber"],
+        langname: langname,
+        langextension: langextension,
+        updatetime: response.body["updatetime"],
+      });
     });
 
-    it("Tenta criar uma linguagem com propriedades faltando", async () => {
-      const response = await request(URL)
-        .post("/api/contest/2/language")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`)
-        .send(createLang5Fail);
-
-      expect(response.statusCode).to.equal(400);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include("Missing");
-    });
-
-    it("Tenta resgatar uma linguagem que não existe", async () => {
-      const response = await request(URL)
-        .get("/api/contest/2/language/4")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`);
-
-      expect(response.statusCode).to.equal(404);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include("Language does not exist");
-    });
-
-    it("Tenta criar uma linguagem com uma propriedade de tipo errado", async () => {
-      const response = await request(URL)
-        .post("/api/contest/2/language")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`)
-        .send(createLang6Fail);
-
-      expect(response.statusCode).to.equal(400);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include("langname");
-    });
   });
+
 });

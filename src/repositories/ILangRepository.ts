@@ -27,7 +27,7 @@ interface ICreateLangDTO {
   langextension: string;
 }
 
-interface IUpdadeLangDTO {
+interface IUpdateLangDTO {
   contestnumber: number;
   langnumber: number;
   langname: string;
@@ -43,8 +43,13 @@ interface ILangRepository {
   getById(contestnumber: number, langnumber: number): Promise<Lang | undefined>;
   create(lang: ICreateLangDTO): Promise<Lang>;
   getLastId(contestnumber: number): Promise<number | undefined>;
-  update(lang: IUpdadeLangDTO): Promise<Lang>;
+  update(lang: IUpdateLangDTO): Promise<Lang>;
   delete(contestnumber: number, langnumber: number): Promise<void>;
 }
 
-export { ILangRepository, ILastIdResult, ICreateLangDTO, IUpdadeLangDTO };
+export {
+  ILangRepository, 
+  ILastIdResult, 
+  ICreateLangDTO, 
+  IUpdateLangDTO
+};

@@ -27,8 +27,11 @@ import { ILangRepository } from "../../repositories/ILangRepository";
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
 import LangValidator from "../../shared/validation/entities/LangValidator";
 
+import IdValidator from "../../shared/validation/utils/IdValidator";
+
 interface IRequest {
   contestnumber: number;
+  langnumber: number;
   langname: string;
   langextension: string;
 }
@@ -36,6 +39,7 @@ interface IRequest {
 @injectable()
 class CreateLangUseCase {
   private contestValidator: ContestValidator;
+  private idValidator: IdValidator;
   private langValidator: LangValidator;
 
   constructor(
@@ -43,24 +47,41 @@ class CreateLangUseCase {
     private langRepository: ILangRepository
   ) {
     this.contestValidator = container.resolve(ContestValidator);
+    this.idValidator = container.resolve(IdValidator);
     this.langValidator = container.resolve(LangValidator);
   }
 
   async execute({
     contestnumber,
+    langnumber,
     langname,
     langextension,
   }: IRequest): Promise<Lang> {
     await this.contestValidator.exists(contestnumber);
 
-    let lastId = await this.langRepository.getLastId(contestnumber);
-    lastId = lastId !== undefined ? lastId : 0;
-    const langnumber = lastId + 1;
-
-    const lang = new Lang(contestnumber, langnumber, langname, langextension);
+    if (langnumber === undefined) {
+      let lastId = await this.langRepository.getLastId(contestnumber);
+      lastId = lastId !== undefined ? lastId : 0;
+      langnumber = lastId + 1;
+    }
+    else {
+      // check if it is a valid id
+      this.idValidator.isLangId(langnumber);
+      // and it has not been assigned yet
+      await this.langValidator.notexists(
+        contestnumber, 
+        langnumber
+      );
+    }
+    
+    const lang = new Lang(
+      contestnumber, 
+      langnumber, 
+      langname, 
+      langextension
+    );
 
     await this.langValidator.isValid(lang);
-
     return await this.langRepository.create({ ...lang });
   }
 }

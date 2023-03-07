@@ -54,13 +54,17 @@ class UpdateLangUseCase {
     langextension,
   }: IRequest): Promise<Lang> {
     await this.contestValidator.exists(contestnumber);
-    await this.langValidator.exists(contestnumber, langnumber);
+    const old = await this.langValidator.exists(contestnumber, langnumber);
 
-    const lang = new Lang(contestnumber, langnumber, langname, langextension);
+    const latest = new Lang(
+      contestnumber,
+      langnumber,
+      langname !== undefined ? langname : old.langname,
+      langextension !== undefined ? langextension : old.langextension
+    );
 
-    await this.langValidator.isValid(lang);
-
-    return await this.langRepository.update({ ...lang });
+    await this.langValidator.isValid(latest);
+    return await this.langRepository.update({ ...latest });
   }
 }
 

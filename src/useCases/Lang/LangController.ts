@@ -24,10 +24,13 @@ import { NextFunction, Request, Response } from "express";
 import { container } from "tsyringe";
 
 import { HttpStatus } from "../../shared/definitions/HttpStatusCodes";
+import { AuthPayload } from "../../shared/definitions/AuthPayload";
 
 import { LangRequestValidator } from "../../shared/validation/requests/LangRequestValidator";
 
 import IdValidator from "../../shared/validation/utils/IdValidator";
+
+import { ApiError } from "../../errors/ApiError";
 
 import { CreateLangUseCase } from "./CreateLangUseCase";
 import { DeleteLangUseCase } from "./DeleteLangUseCase";
@@ -47,12 +50,27 @@ class LangController {
     const { id_c } = request.params;
     const contestnumber = Number(id_c);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
 
-      const all = await listLangUseCase.execute({ contestnumber });
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+          userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
 
-      return response.status(HttpStatus.SUCCESS).json(all);
+      const all = await listLangUseCase.execute({ 
+        contestnumber 
+      });
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(all);
     } catch (error) {
       next(error);
     }
@@ -71,16 +89,31 @@ class LangController {
     const contestnumber = Number(id_c);
     const langnumber = Number(id_l);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
       idValidator.isLangId(langnumber);
 
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+          userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+
+      // otherwise, retrieve language
       const lang = await getLangUseCase.execute({
         contestnumber,
         langnumber,
       });
 
-      return response.status(HttpStatus.SUCCESS).json(lang);
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(lang);
     } catch (error) {
       next(error);
     }
@@ -98,19 +131,40 @@ class LangController {
     const { id_c } = request.params;
     const contestnumber = Number(id_c);
 
-    const { langname, langextension } = request.body;
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
+    const {
+      langnumber,
+      langname, 
+      langextension
+    } = request.body;
 
     try {
       idValidator.isContestId(contestnumber);
       langRequestValidator.hasRequiredCreateProperties(request.body);
 
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+          userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+
       const lang = await createLangUseCase.execute({
         contestnumber,
+        langnumber,
         langname,
         langextension,
       });
 
-      return response.status(HttpStatus.CREATED).json(lang);
+      return response
+        .setHeader('Content-Location', 
+          `/api/contest/${lang.contestnumber}/language/${lang.langnumber}`)
+        .status(HttpStatus.CREATED)
+        .json(lang);
     } catch (error) {
       next(error);
     }
@@ -123,20 +177,33 @@ class LangController {
   ): Promise<Response | undefined> {
     const updateLangUseCase = container.resolve(UpdateLangUseCase);
     const idValidator = container.resolve(IdValidator);
-    const langRequestValidator = container.resolve(LangRequestValidator);
 
     const { id_c } = request.params;
     const { id_l } = request.params;
     const contestnumber = Number(id_c);
     const langnumber = Number(id_l);
 
-    const { langname, langextension } = request.body;
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
+    const { 
+      langname, 
+      langextension 
+    } = request.body;
 
     try {
       idValidator.isContestId(contestnumber);
       idValidator.isLangId(langnumber);
-      langRequestValidator.hasRequiredUpdateProperties(request.body);
 
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+        userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+  
       const updatedLang = await updateLangUseCase.execute({
         contestnumber,
         langnumber,
@@ -144,7 +211,9 @@ class LangController {
         langextension,
       });
 
-      return response.status(HttpStatus.UPDATED).json(updatedLang);
+      return response
+        .status(HttpStatus.UPDATED)
+        .json(updatedLang);
     } catch (error) {
       next(error);
     }
@@ -163,13 +232,30 @@ class LangController {
     const contestnumber = Number(id_c);
     const langnumber = Number(id_l);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
       idValidator.isLangId(langnumber);
 
-      await deleteLangUseCase.execute({ contestnumber, langnumber });
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+        userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+      
+      await deleteLangUseCase.execute({
+        contestnumber,
+        langnumber
+      });
 
-      return response.status(HttpStatus.DELETED).json();
+      return response
+        .status(HttpStatus.DELETED)
+        .json();
     } catch (error) {
       next(error);
     }

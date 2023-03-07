@@ -27,8 +27,8 @@ import { Lang } from "../../entities/Lang";
 import {
   ILangRepository,
   ICreateLangDTO,
-  IUpdadeLangDTO,
   ILastIdResult,
+  IUpdateLangDTO,
 } from "../ILangRepository";
 
 class LangRepository implements ILangRepository {
@@ -36,6 +36,17 @@ class LangRepository implements ILangRepository {
 
   constructor() {
     this.repository = AppDataSource.getRepository(Lang);
+  }
+
+  async list(contestnumber: number): Promise<Lang[]> {
+    return await this.repository.find({
+      where: { 
+        contestnumber: contestnumber
+      },
+      order: {
+        langnumber: "ASC"
+      }
+    });
   }
 
   async getById(
@@ -62,19 +73,13 @@ class LangRepository implements ILangRepository {
     return lastIdResult !== undefined ? lastIdResult.id : undefined;
   }
 
-  async list(contestnumber: number): Promise<Lang[]> {
-    return await this.repository.find({
-      where: { contestnumber: contestnumber },
-    });
-  }
-
   async create(createObject: ICreateLangDTO): Promise<Lang> {
     const lang = this.repository.create(createObject);
     await this.repository.save(lang);
     return lang;
   }
 
-  async update(updateObject: IUpdadeLangDTO): Promise<Lang> {
+  async update(updateObject: IUpdateLangDTO): Promise<Lang> {
     const result = await this.repository
       .createQueryBuilder()
       .update(Lang)

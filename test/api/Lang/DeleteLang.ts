@@ -21,94 +21,269 @@
 import { expect } from "chai";
 import request from "supertest";
 
-import { Lang } from "../../../src/entities/Lang";
+import { initdb, getToken } from "../../utils/common";
 
-import { URL } from "../../utils/URL";
-import { getToken } from "../../utils/common";
+import { HttpStatus } from "../../../src/shared/definitions/HttpStatusCodes";
 
-import updateLang1Pass from "../../entities/Lang/Pass/updateLang1.json";
-import updateLang2Pass from "../../entities/Lang/Pass/updateLang2.json";
-
-describe("Remoção de uma linguagem", () => {
-  let adminToken: string;
-
-  it('Faz login no User "admin"', async () => {
-    adminToken = await getToken("boca", "v512nj18986j8t9u1puqa2p9mh", "admin");
+describe("Delete language testing scenarios", () => {
+    let host;
+    let port;
+    let URL: string;
+    let pass: string;
+    let salt: string;
+    let contestnumberAlpha: number;
+    let contestnumberBeta: number;
+    let langnumberJava: number;
+    let langnumberPython: number;
+  
+    // setup environment before tests
+    before(async () => {
+      host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
+      port = process.env.BOCA_API_PORT ? process.env.BOCA_API_PORT : "3000";
+      URL = host + ":" + port;
+      pass = process.env.BOCA_PASSWORD ? process.env.BOCA_PASSWORD : "boca";
+      salt = process.env.BOCA_KEY ? process.env.BOCA_KEY : "v512nj18986j8t9u1puqa2p9mh";
+  
+      initdb();
+  
+      contestnumberAlpha = 1;
+      contestnumberBeta = 2;
+      langnumberJava = 3;
+      langnumberPython = 5;
+    });
+  
+    describe("Negative testing", () => {
+  
+      it("Missing authentication header", async () => {
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberAlpha}/language/${langnumberJava}`)
+          .set("Accept", "application/json");
+  
+        expect(response.statusCode).to.equal(HttpStatus.UNAUTHORIZED);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("Invalid access token", async () => {
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberAlpha}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${pass}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.UNAUTHORIZED);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("Invalid contestnumber (min)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "admin"
+        );
+  
+        const contestnumber = 0;
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumber}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("Invalid contestnumber (max)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "admin"
+        );
+  
+        const contestnumber = 4294967295;
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumber}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("Invalid langnumber (min)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "admin"
+        );
+  
+        const langnumber = 0;
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberAlpha}/language/${langnumber}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("Invalid langnumber (max)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "admin"
+        );
+  
+        const langnumber = 4294967295;
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberAlpha}/language/${langnumber}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("User of system type has no permission (Alpha)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "system"
+        );
+  
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberAlpha}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+    
+      it("User of system type has no permission (Beta)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "system"
+        );
+  
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberBeta}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+    
+      it("User of admin type has no permission (Beta)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "admin"
+        );
+  
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberBeta}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("User of team type has no permission (Beta)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "team1"
+        );
+  
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberBeta}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("User of judge type has no permission (Beta)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "judge1"
+        );
+  
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberBeta}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.FORBIDDEN);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+      it("Language not found", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "admin"
+        );
+  
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberAlpha}/language/${langnumberPython + 1}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+  
+        expect(response.statusCode).to.equal(HttpStatus.NOT_FOUND);
+        expect(response.headers["content-type"]).to.contain("application/json");
+        expect(response.body).to.have.own.property("error");
+        expect(response.body).to.have.own.property("message");
+      });
+  
+    });
+  
+    describe("Positive testing", () => {
+  
+      it("User of admin type has permission (Alpha)", async () => {
+        const token = await getToken(
+          pass,
+          salt,
+          "admin"
+        );
+  
+        const response = await request(URL)
+          .delete(`/api/contest/${contestnumberAlpha}/language/${langnumberJava}`)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`)
+          .send();
+  
+        expect(response.statusCode).to.equal(HttpStatus.DELETED);
+        expect(response.headers).to.not.have.own.property("content-type");
+        expect(response.body).to.be.empty;
+      });
+  
+    });
+  
   });
-
-  describe("Fluxo positivo", () => {
-    it('Deleta a linguagem de ID 3 do "Contest Beta"', async () => {
-      const response = await request(URL)
-        .delete("/api/contest/2/language/3")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`);
-
-      expect(response.statusCode).to.equal(204);
-      expect(response.headers).to.not.have.own.property("content-type");
-      expect(response.body).to.be.empty;
-    });
-
-    it("Resgata todas as linguagens, mas a linguagem de ID 3 foi deletada", async () => {
-      const all = await request(URL)
-        .get("/api/contest/2/language")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`);
-
-      expect(all.statusCode).to.equal(200);
-      expect(all.headers["content-type"]).to.contain("application/json");
-      expect(all.body).to.be.an("array");
-
-      const lang1 = all.body.find((lang: Lang) => lang.langnumber === 1);
-      const lang2 = all.body.find((lang: Lang) => lang.langnumber === 2);
-      const lang3 = all.body.find((lang: Lang) => lang.langnumber === 3);
-
-      expect(lang3).to.be.undefined;
-
-      expect(lang1).to.be.an("object");
-      expect(lang1).to.have.own.property("langnumber");
-      expect(lang1).to.deep.include(updateLang1Pass);
-
-      expect(lang2).to.be.an("object");
-      expect(lang2).to.have.own.property("langnumber");
-      expect(lang2).to.deep.include(updateLang2Pass);
-    });
-  });
-
-  describe("Fluxo negativo", () => {
-    it("Tenta resgatar a linguagem de ID 3 deletada", async () => {
-      const response = await request(URL)
-        .get("/api/contest/2/language/3")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`);
-
-      expect(response.statusCode).to.equal(404);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include("Language does not exist");
-    });
-
-    it("Tenta deletar novamente a linguagem de ID 3", async () => {
-      const response = await request(URL)
-        .delete("/api/contest/2/language/3")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`);
-
-      expect(response.statusCode).to.equal(404);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include("Language does not exist");
-    });
-
-    it("Tenta deletar a linguagem de ID 1 de um contest inexistente", async () => {
-      const response = await request(URL)
-        .delete("/api/contest/3/language/1")
-        .set("Accept", "application/json")
-        .set("Authorization", `Token ${adminToken}`);
-
-      expect(response.statusCode).to.equal(404);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("message");
-      expect(response.body["message"]).to.include("Contest does not exist");
-    });
-  });
-});
+  

@@ -22,7 +22,7 @@ import { Column, Entity, PrimaryColumn } from "typeorm";
 import {
   IsPositive,
   IsInt,
-  Min,
+  Max,
   MaxLength,
   MinLength,
   IsString,
@@ -31,25 +31,27 @@ import {
 @Entity("langtable")
 class Lang {
   @PrimaryColumn("int4")
-  @IsPositive({ message: "contestnumber must be greater than zero" })
   @IsInt()
+  @IsPositive({ message: "contestnumber must be greater than zero" })
+  @Max(2147483647)
   contestnumber!: number;
 
   @PrimaryColumn("int4")
-  @Min(0)
   @IsInt()
+  @IsPositive({ message: "langnumber must be greater than zero" })
+  @Max(2147483647)
   langnumber!: number;
 
   @Column("varchar", { length: 50 })
-  @MaxLength(50)
-  @MinLength(1)
   @IsString()
+  @MinLength(1)
+  @MaxLength(50)
   langname!: string;
 
   @Column("varchar", { length: 20 })
-  @MaxLength(20)
-  @MinLength(1)
   @IsString()
+  @MinLength(1)
+  @MaxLength(20)
   langextension!: string;
 
   @Column("int4", { default: "EXTRACT(EPOCH FROM now())" })
@@ -68,4 +70,95 @@ class Lang {
   }
 }
 
-export { Lang };
+const createLangRequiredProperties = [
+  "contestnumber",
+  "langname",
+  "langextension",
+];
+
+const updateLangRequiredProperties = [
+  "langname",
+  "langextension",
+];
+
+const langPKBaseSchema = {
+  type: "object",
+  properties: {
+    contestnumber: {
+      type: "number",
+      description: "Contest id",
+      minimum: 1,
+      maximum: 2147483647,
+    },
+  },
+};
+
+const langPKSchema = {
+  type: "object",
+  properties: {
+    langnumber: {
+      type: "number",
+      description: "Language id",
+      minimum: 1,
+      maximum: 2147483647,
+    },
+  },
+};
+
+const langRequestSchema = {
+  type: "object",
+  properties: {
+    langname: {
+      type: "string",
+      description: "Language name",
+      minLength: 1,
+      maxLength: 50,
+    },
+    langextension: {
+      type: "string",
+      description: "Language extension",
+      minLength: 1,
+      maxLength: 20,
+    },
+  },
+};
+
+const langResponseSchema = {
+  ...langPKBaseSchema,
+  ...langPKSchema,
+  ...langRequestSchema,
+  properties: {
+    ...langPKBaseSchema.properties,
+    ...langPKSchema.properties,
+    ...langRequestSchema.properties,
+    updatetime: {
+      type: "number",
+      description: "Unix timestamp of language last update",
+      minimum: 1,
+    },
+  },
+};
+
+const createLangSchema = {
+  ...langPKSchema,
+  ...langRequestSchema,
+  properties: {
+    ...langPKSchema.properties,
+    ...langRequestSchema.properties,
+  },
+  required: createLangRequiredProperties,
+};
+
+const updateLangSchema = {
+  ...langRequestSchema,
+  //required: updateLangRequiredProperties,
+};
+
+export { 
+  Lang,
+  createLangRequiredProperties,
+  updateLangRequiredProperties,
+  langResponseSchema,
+  createLangSchema,
+  updateLangSchema, 
+};

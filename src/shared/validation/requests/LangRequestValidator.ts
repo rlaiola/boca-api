@@ -22,17 +22,20 @@ import { injectable } from "tsyringe";
 
 import { RequestValidator } from "./RequestValidator";
 
-const createRequiredProperties = ["langname", "langextension"];
-const updateRequiredProperties = ["langname", "langextension"];
+import {
+  createLangRequiredProperties,
+  updateLangRequiredProperties,
+} from "../../../entities/Lang";
+
 
 @injectable()
 class LangRequestValidator extends RequestValidator {
   hasRequiredCreateProperties(request: object): void {
-    this.hasRequiredProperties(request, createRequiredProperties);
+    this.hasRequiredProperties(request, createLangRequiredProperties);
   }
 
   hasRequiredUpdateProperties(request: object): void {
-    this.hasRequiredProperties(request, updateRequiredProperties);
+    this.hasRequiredProperties(request, updateLangRequiredProperties);
   }
 }
 
