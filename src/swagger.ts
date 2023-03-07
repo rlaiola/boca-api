@@ -26,6 +26,12 @@ import {
   updateContestSchema,
 } from "./entities/Contest";
 
+import {
+  langResponseSchema,
+  createLangSchema,
+  updateLangSchema,
+} from "./entities/Lang";
+
 import { errorSchema } from "./errors/ApiError";
 
 const options = {
@@ -50,9 +56,14 @@ const options = {
     components: {
       schemas: {
         Error: errorSchema,
+        // Contest
         Contest: contestResponseSchema,
         CreateContest: createContestSchema,
         UpdateContest: updateContestSchema,
+        // Language
+        Language: langResponseSchema,
+        CreateLanguage: createLangSchema,
+        UpdateLanguage: updateLangSchema,
       },
       securitySchemes: {
         bearerAuth: {           // arbitrary name for the security scheme
