@@ -22,15 +22,27 @@ import { expect } from "chai";
 import { createHash } from "crypto";
 import request from "supertest";
 
+import { initdb } from "../../utils/common";
+
 import { HttpStatus } from "../../../src/shared/definitions/HttpStatusCodes";
 
-const host = process.env.BOCA_API_HOST;
-const port = process.env.BOCA_API_PORT;
-const URL = host + ":" + port;
-const pass = process.env.BOCA_PASSWORD;
-const salt = process.env.BOCA_KEY;
-
 describe("Auth testing scenarios", () => {
+  let host;
+  let port;
+  let URL: string;
+  let pass: string;
+  let salt: string;
+
+  // setup environment before tests
+  before(async () => {
+    host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
+    port = process.env.BOCA_API_PORT ? process.env.BOCA_API_PORT : "3000";
+    URL = host + ":" + port;
+    pass = process.env.BOCA_PASSWORD ? process.env.BOCA_PASSWORD : "boca";
+    salt = process.env.BOCA_KEY ? process.env.BOCA_KEY : "v512nj18986j8t9u1puqa2p9mh";
+
+    initdb();
+  });
 
   describe("Negative testing", () => {
 
@@ -181,7 +193,82 @@ describe("Auth testing scenarios", () => {
 
   describe("Positive testing", () => {
 
-    it('Access token generated', async () => {
+    it('Access token generated (user of system type)', async () => {
+      const user = "system";
+      const password = pass;
+
+      const hashedPassword = createHash("sha256")
+        .update(password + "")
+        .digest("hex");
+      const hash = createHash("sha256")
+        .update(hashedPassword + salt)
+        .digest("hex");
+
+      const response = await request(URL)
+        .get("/api/token")
+        .query({
+          name: user,
+          password: hash,
+        })
+        .set("Accept", "application/json");
+
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["expires"]).to.be.not.undefined;
+      expect(response.body).to.have.own.property("accessToken");
+    });
+
+    it('Access token generated (user of admin type)', async () => {
+      const user = "admin";
+      const password = pass;
+
+      const hashedPassword = createHash("sha256")
+        .update(password + "")
+        .digest("hex");
+      const hash = createHash("sha256")
+        .update(hashedPassword + salt)
+        .digest("hex");
+
+      const response = await request(URL)
+        .get("/api/token")
+        .query({
+          name: user,
+          password: hash,
+        })
+        .set("Accept", "application/json");
+
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["expires"]).to.be.not.undefined;
+      expect(response.body).to.have.own.property("accessToken");
+    });
+
+    it('Access token generated (user of team type)', async () => {
+      const user = "team1";
+      const password = pass;
+
+      const hashedPassword = createHash("sha256")
+        .update(password + "")
+        .digest("hex");
+      const hash = createHash("sha256")
+        .update(hashedPassword + salt)
+        .digest("hex");
+
+      const response = await request(URL)
+        .get("/api/token")
+        .query({
+          name: user,
+          password: hash,
+        })
+        .set("Accept", "application/json");
+
+      expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
+      expect(response.headers["content-type"]).to.contain("application/json");
+      expect(response.headers["expires"]).to.be.not.undefined;
+      expect(response.body).to.have.own.property("accessToken");
+    });
+
+    it('Access token generated (user of judge type)', async () => {
       const user = "system";
       const password = pass;
 

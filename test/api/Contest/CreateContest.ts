@@ -45,7 +45,7 @@ describe("Create contest testing scenarios", () => {
     pass = process.env.BOCA_PASSWORD ? process.env.BOCA_PASSWORD : "boca";
     salt = process.env.BOCA_KEY ? process.env.BOCA_KEY : "v512nj18986j8t9u1puqa2p9mh";
 
-    initdb();
+    await initdb();
 
     contestnumberAlpha = 1;
     contestnumberBeta = 2;

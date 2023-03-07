@@ -25,7 +25,7 @@ import { expect } from "chai";
 import { createHash } from "crypto";
 import request from "supertest";
 
-import { URL } from "./URL";
+import { HttpStatus } from "../../src/shared/definitions/HttpStatusCodes";
 
 const initdb = async () => {
   const client = new Client({
@@ -51,6 +51,10 @@ const getToken = async (
   salt: string,
   username: string
 ): Promise<string> => {
+  const host = process.env.BOCA_API_HOST ? process.env.BOCA_API_HOST : "localhost";
+  const port = process.env.BOCA_API_PORT ? process.env.BOCA_API_PORT : "3000";
+  const URL = host + ":" + port;
+
   let hashedPassword = "";
   if (password !== "") {
     hashedPassword = createHash("sha256").update(password).digest("hex");
@@ -68,7 +72,7 @@ const getToken = async (
     })
     .set("Accept", "application/json");
 
-  expect(response.statusCode).to.equal(200);
+  expect(response.statusCode).to.equal(HttpStatus.SUCCESS);
   expect(response.headers["content-type"]).to.contain("application/json");
 
   const token = response.body["accessToken"];
