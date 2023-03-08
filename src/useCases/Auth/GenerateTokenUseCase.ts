@@ -149,24 +149,32 @@ class GenerateTokenUseCase {
           if (user !== undefined) {
             console.log(`'${name}' user found in local site (${site.sitenumber}) of active contest (${contest.contestnumber})`);
 
-            // the hash of team type users start with a "!"
-            const hashedPassword = user.usertype === UserType.TEAM ||
-                                   user.usertype === UserType.JUDGE ?
-                                     user.userpassword?.replace("!", "") : 
-                                     user.userpassword;
-            const saltedHash = createHash("sha256")
-                                 .update( (hashedPassword !== undefined ? 
-                                             hashedPassword : "") + salt )
-                                 .digest("hex");
+            if (site.sitepermitlogins || user.usertype === UserType.ADMIN) {
+              // the hash of team type users start with a "!"
+              const hashedPassword = user.usertype === UserType.TEAM ||
+                                    user.usertype === UserType.JUDGE ?
+                                      user.userpassword?.replace("!", "") : 
+                                      user.userpassword;
+              const saltedHash = createHash("sha256")
+                                  .update( (hashedPassword !== undefined ? 
+                                              hashedPassword : "") + salt )
+                                  .digest("hex");
 
-            if (saltedHash == saltedPassword) {
-              console.log(`'${name}' user authenticated in local site (${site.sitenumber}) of active contest (${contest.contestnumber})`);
+              if (saltedHash == saltedPassword) {
+                console.log(`'${name}' user authenticated in local site (${site.sitenumber}) of active contest (${contest.contestnumber})`);
+              }
+              else {
+                console.log(`'${name}' user could not authenticate in local site (${site.sitenumber}) of active contest (${contest.contestnumber}): incorrect password`);
+
+                // set user as undefined
+                user = undefined;
+              }
             }
             else {
-              console.log(`'${name}' user could not authenticate in local site (${site.sitenumber}) of active contest (${contest.contestnumber}): incorrect password`);
+              console.log(`Login is not allowed for non-administrator users at local site (${site.sitenumber}) of active contest (${contest.contestnumber})`);
 
-              // try to login as no system type user if undefined
-              user = undefined;
+              // set user as undefined
+              throw ApiError.unauthorized("New logins are not allowed");
             }
           }
           else {
