@@ -159,5 +159,5 @@ export {
   updateLangRequiredProperties,
   langResponseSchema,
   createLangSchema,
-  updateLangSchema, 
+  updateLangSchema,
 };
