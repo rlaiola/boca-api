@@ -43,7 +43,7 @@ const contestController = new ContestController();
  *       Returns all contests that the user has access to. In fact, a user
  *       of _system_ type only has permission to access all contests, while
  *       other types of users get just the one contest they are associated
- *       with (actually, they are associated with a site of a contest).
+ *       with (actually, they belong to a site of a contest).
  *     operationId: getContests
  *     security:
  *       - bearerAuth: []
