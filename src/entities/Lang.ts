@@ -20,12 +20,12 @@
 
 import { Column, Entity, PrimaryColumn } from "typeorm";
 import {
-  IsPositive,
   IsInt,
+  IsPositive,
   Max,
+  IsString,
   MaxLength,
   MinLength,
-  IsString,
 } from "class-validator";
 
 @Entity("langtable")
