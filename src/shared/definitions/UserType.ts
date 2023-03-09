@@ -25,4 +25,6 @@ class UserType {
   static SYSTEM = "system";
 }
 
-export { UserType };
+export {
+  UserType
+};
