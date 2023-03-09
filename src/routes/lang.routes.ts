@@ -41,8 +41,9 @@ const langController = new LangController();
  *     summary: List all languages of a contest by ID
  *     description: | 
  *       Returns all programming languages given the ID (*contestnumber*) of
- *       the contest. Only users belonging to the referred contest have
- *       permission for this operation.
+ *       the contest. Only users associated with the referred contest
+ *       (in fact, belonging to the contest local site) have permission for
+ *       this operation.
  *     operationId: getLanguages
  *     security:
  *       - bearerAuth: []
@@ -84,79 +85,11 @@ const langController = new LangController();
 langRoutes.get(
   "/contest/:id_c/language",
   authenticate([
-    UserType.ADMIN, // TODO Deve resgatar apenas Langs do Contest ao qual o admin pertence
-    UserType.TEAM, // TODO Deve resgatar apenas Langs do Contest ao qual o team pertence
-    UserType.JUDGE, // TODO Deve resgatar apenas Langs do Contest ao qual o judge pertence
+    UserType.ADMIN, // the user of admin type has permission for this operation
+    UserType.TEAM,  // the user of team type has permission for this operation
+    UserType.JUDGE, // the user of judge type has permission for this operation
   ]),
   langController.listAll
-);
-
-/**
- * @swagger
- * /api/contest/{id_c}/language/{id_l}:
- *   get:
- *     tags: ["Language"]
- *     summary: Find a language within a contest by ID
- *     description: |
- *       Returns a single language from a contest (*contestnumber*) based on
- *       ID (*langnumber*). Only users belonging to the referred contest have
- *       permission for this operation.
- *     operationId: getLanguageById
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: id_c
- *         in: path
- *         schema:
- *           type: string
- *         required: true
- *         description: ID (*contestnumber*) of the contest
- *       - name: id_l
- *         in: path
- *         schema:
- *           type: string
- *         required: true
- *         description: ID (*langnumber*) of the language
- *     responses:
- *       200:
- *         description: 'Success: Language found'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Language'
- *       400:
- *         description: 'Bad Request: The supplied *contestnumber* or *langnumber* is invalid'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: 'Unauthorized: Authentication header is missing or the supplied API access token is invalid'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: 'Forbidden: The user associated with the API access token has no permission for the requested operation'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: 'Not Found: The language specified in the request does not exist'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-langRoutes.get(
-  "/contest/:id_c/language/:id_l",
-  authenticate([
-    UserType.ADMIN, // TODO Deve resgatar apenas uma Lang do Contest ao qual o admin pertence
-    UserType.TEAM, // TODO Deve resgatar apenas uma Lang do Contest ao qual o team pertence
-    UserType.JUDGE, // TODO Deve resgatar apenas uma Lang do Contest ao qual o judge pertence
-  ]),
-  langController.getOne
 );
 
 /**
@@ -166,11 +99,11 @@ langRoutes.get(
  *     tags: ["Language"]
  *     summary: Add a new language to a contest
  *     description: | 
- *       The user of _admin_ type only (the one associated with the given 
- *       contest ID) has permission for this operation. All properties are
- *       required, with the exception of *langnumber*. If supplied, this will
- *       be used only if the value has not already been assigned to another
- *       language within the referred contest.
+ *       A user of _admin_ type associated with the referred contest (in fact,
+ *       belonging to the contest local site) only has permission for this
+ *       operation. All properties are required, with the exception of
+ *       *langnumber*. If supplied, this will be used only if the value has not
+ *       already been assigned to another language within the referred contest.
  *     operationId: createLanguage
  *     security:
  *       - bearerAuth: []
@@ -241,13 +174,83 @@ langRoutes.post(
 /**
  * @swagger
  * /api/contest/{id_c}/language/{id_l}:
+ *   get:
+ *     tags: ["Language"]
+ *     summary: Find a language within a contest by ID
+ *     description: |
+ *       Returns a single language from a contest (*contestnumber*) based on
+ *       ID (*langnumber*). Only users associated with the referred contest
+ *       (in fact, belonging to the contest local site) have permission for
+ *       this operation.
+ *     operationId: getLanguageById
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id_c
+ *         in: path
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID (*contestnumber*) of the contest
+ *       - name: id_l
+ *         in: path
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID (*langnumber*) of the language
+ *     responses:
+ *       200:
+ *         description: 'Success: Language found'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Language'
+ *       400:
+ *         description: 'Bad Request: The supplied *contestnumber* or *langnumber* is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: 'Unauthorized: Authentication header is missing or the supplied API access token is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: 'Forbidden: The user associated with the API access token has no permission for the requested operation'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: 'Not Found: The language specified in the request does not exist'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+langRoutes.get(
+  "/contest/:id_c/language/:id_l",
+  authenticate([
+    UserType.ADMIN, // the user of admin type has permission for this operation
+    UserType.TEAM,  // the user of team type has permission for this operation
+    UserType.JUDGE, // the user of judge type has permission for this operation
+  ]),
+  langController.getOne
+);
+
+/**
+ * @swagger
+ * /api/contest/{id_c}/language/{id_l}:
  *   put:
  *     tags: ["Language"]
  *     summary: Update a language of a contest by ID
  *     description: | 
  *       Updates a language of a contest (*contestnumber*) based on ID
- *       (*langnumber*). The user of _admin_ type only (the one associated
- *       with the given contest ID) has permission for this operation.
+ *       (*langnumber*). A user of _admin_ type associated with the
+ *       referred contest (in fact, belonging to the contest local site) only
+ *       has permission for this operation.
  *     operationId: updateLanguageById
  *     security:
  *       - bearerAuth: []
@@ -321,9 +324,9 @@ langRoutes.put(
  *     summary: Delete a language from a contest by ID
  *     description: | 
  *       Deletes a language from a contest (*contestnumber*) based on ID
- *       (*langnumber*). The user of _admin_ type only (the one associated
- *       with the given contest ID) has permission for this operation and
- *       it cannot be undone.
+ *       (*langnumber*). A user of _admin_ type associated with the
+ *       referred contest (in fact, belonging to the contest local site) only
+ *       has permission for this operation and it cannot be undone.
  *     operationId: deleteLanguageById
  *     security:
  *       - bearerAuth: []
@@ -376,4 +379,6 @@ langRoutes.delete(
   langController.delete
 );
 
-export { langRoutes };
+export {
+  langRoutes
+};
