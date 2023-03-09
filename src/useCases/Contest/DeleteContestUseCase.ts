@@ -39,10 +39,14 @@ class DeleteContestsUseCase {
     this.contestValidator = container.resolve(ContestValidator);
   }
 
-  async execute({ contestnumber }: IRequest): Promise<void> {
+  async execute({
+    contestnumber
+  }: IRequest): Promise<void> {
     await this.contestValidator.exists(contestnumber);
     await this.contestsRepository.delete(contestnumber);
   }
 }
 
-export { DeleteContestsUseCase };
+export {
+  DeleteContestsUseCase
+};

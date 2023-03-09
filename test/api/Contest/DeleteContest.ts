@@ -241,7 +241,7 @@ describe("Delete contest testing scenarios", () => {
 
   describe("Positive testing", () => {
 
-    it("User of system type has permission (Alpha)", async () => {
+    it("User of system type only has permission (Alpha)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -258,7 +258,7 @@ describe("Delete contest testing scenarios", () => {
       expect(response.body).to.be.empty;
     });
 
-    it("User of system type has permission (Beta)", async () => {
+    it("User of system type only has permission (Beta)", async () => {
       const token = await getToken(
         pass,
         salt,

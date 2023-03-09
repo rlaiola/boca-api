@@ -1895,7 +1895,7 @@ describe("Create contest testing scenarios", () => {
 
   describe("Positive testing", () => {
 
-    it("User of system type has permission", async () => {
+    it("User of system type only has permission", async () => {
       const token = await getToken(
         pass,
         salt,

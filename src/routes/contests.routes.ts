@@ -39,7 +39,11 @@ const contestController = new ContestController();
  *   get:
  *     tags: ["Contest"]
  *     summary: List all contests
- *     description: Returns all contests that the user has access to.
+ *     description: |
+ *       Returns all contests that the user has access to. In fact, a user
+ *       of _system_ type only has permission to access all contests, while
+ *       other types of users get just the one contest they are associated
+ *       with (actually, they are associated to a site of a contest).
  *     operationId: getContests
  *     security:
  *       - bearerAuth: []
@@ -72,73 +76,12 @@ contestsRoutes.get(
 
 /**
  * @swagger
- * /api/contest/{id_c}:
- *   get:
- *     tags: ["Contest"]
- *     summary: Find a contest by ID
- *     description: |
- *       Returns a single contest based on ID (*contestnumber*) but only if the user has access to it.
- *     operationId: getContestById
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: id_c
- *         in: path
- *         schema:
- *           type: string
- *         required: true
- *         description: ID (*contestnumber*) of the contest to fetch
- *     responses:
- *       200:
- *         description: 'Success: Contest found'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Contest'
- *       400:
- *         description: 'Bad Request: The supplied *contestnumber* is invalid'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: 'Unauthorized: Authentication header is missing or the supplied API access token is invalid'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: 'Forbidden: The user associated with the API access token has no permission for the requested operation'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: 'Not Found: The contest specified in the request does not exist'
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-contestsRoutes.get(
-  "/contest/:id_c",
-  authenticate([
-    UserType.SYSTEM, // get contest if it exists
-    UserType.ADMIN,  // get contest if the user has access to it
-    UserType.JUDGE,  // get contest if the user has access to it
-    UserType.TEAM,   // get contest if the user has access to it
-  ]),
-  contestController.getOne
-);
-
-/**
- * @swagger
  * /api/contest:
  *   post:
  *     tags: ["Contest"]
  *     summary: Add a new contest
  *     description: | 
- *       The user of _system_ type only has permission for this operation. All
+ *       A user of _system_ type only has permission for this operation. All
  *       properties are required, with the exception of *contestnumber*,
  *       *contestlastmileanswer*, and *contestlastmilescore*. If supplied, 
  *       *contestnumber* will be used only if the value has not already been
@@ -217,14 +160,79 @@ contestsRoutes.post(
 /**
  * @swagger
  * /api/contest/{id_c}:
+ *   get:
+ *     tags: ["Contest"]
+ *     summary: Find a contest by ID
+ *     description: |
+ *       Returns a single contest based on ID (*contestnumber*) but only if
+ *       the user has access to it. A user of _system_ type only has permission
+ *       to access all contests.
+ *     operationId: getContestById
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id_c
+ *         in: path
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID (*contestnumber*) of the contest to fetch
+ *     responses:
+ *       200:
+ *         description: 'Success: Contest found'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Contest'
+ *       400:
+ *         description: 'Bad Request: The supplied *contestnumber* is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: 'Unauthorized: Authentication header is missing or the supplied API access token is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: 'Forbidden: The user associated with the API access token has no permission for the requested operation'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: 'Not Found: The contest specified in the request does not exist'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+contestsRoutes.get(
+  "/contest/:id_c",
+  authenticate([
+    UserType.SYSTEM, // get contest if it exists
+    UserType.ADMIN,  // get contest if the user has access to it
+    UserType.JUDGE,  // get contest if the user has access to it
+    UserType.TEAM,   // get contest if the user has access to it
+  ]),
+  contestController.getOne
+);
+
+/**
+ * @swagger
+ * /api/contest/{id_c}:
  *   put:
  *     tags: ["Contest"]
  *     summary: Update a contest by ID
  *     description: |
- *       Updates a contest based on ID (*contestnumber*). The users of _system_ and of _admin_ type 
- *       (the one associated with the given contest) have permission for this operation. The latter
- *       is allowed to update only the following properties: *contestmainsiteurl*, *contestunlockkey*, 
- *       *contestkeys* and *contestmainsite*.
+ *       Updates a contest based on ID (*contestnumber*). Users of _system_ and
+ *       of _admin_ types (this one associated with the given contest) have
+ *       permission for this operation. The latter is allowed to update all
+ *       properties only if belonging to the contest main site. Otherwise, the
+ *       just the modification of the following properties is allowed:
+ *       *contestmainsiteurl*, *contestunlockkey*, *contestkeys* and *contestmainsite*.
  *     operationId: updateContestById
  *     security:
  *       - bearerAuth: []
@@ -303,7 +311,7 @@ contestsRoutes.put(
  *     tags: ["Contest"]
  *     summary: Delete a contest by ID
  *     description: | 
- *       Deletes a contest based on ID (*contestnumber*). The user of _system_ type only has permission
+ *       Deletes a contest based on ID (*contestnumber*). A user of _system_ type only has permission
  *       for this operation and it cannot be undone.
  *     operationId: deleteContestById
  *     security:
@@ -351,4 +359,6 @@ contestsRoutes.delete(
   contestController.delete
 );
 
-export { contestsRoutes };
+export {
+  contestsRoutes
+};

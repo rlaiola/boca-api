@@ -108,4 +108,6 @@ class CreateContestsUseCase {
   }
 }
 
-export { CreateContestsUseCase };
+export {
+  CreateContestsUseCase
+};

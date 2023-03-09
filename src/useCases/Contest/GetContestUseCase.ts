@@ -41,7 +41,9 @@ class GetContestsUseCase {
     this.contestValidator = container.resolve(ContestValidator);
   }
 
-  async execute({ contestnumber }: IRequest): Promise<Contest | undefined> {
+  async execute({
+    contestnumber
+  }: IRequest): Promise<Contest | undefined> {
     await this.contestValidator.exists(contestnumber);
     return await this.contestsRepository.getById(contestnumber);
   }

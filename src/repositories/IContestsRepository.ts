@@ -59,12 +59,12 @@ interface ILastIdResult {
 }
 
 interface IContestsRepository {
-  findByName(name: string): Promise<Contest | undefined>;
   list(): Promise<Contest[]>;
   create(contest: ICreateContestDTO): Promise<Contest>;
+  getById(id: number): Promise<Contest | undefined>;
   getLastId(): Promise<number | undefined>;
   getActive(): Promise<Contest | undefined>;
-  getById(id: number): Promise<Contest | undefined>;
+  findByName(name: string): Promise<Contest | undefined>;
   update(contest: IUpdateContestDTO): Promise<Contest>;
   delete(contestnumber: number): Promise<void>;
 }

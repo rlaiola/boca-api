@@ -38,7 +38,9 @@ class ListContestsUseCase {
     private contestsRepository: IContestsRepository
   ) {}
 
-  async execute({ currUser }: IRequest): Promise<Contest[]> {
+  async execute({
+    currUser
+  }: IRequest): Promise<Contest[]> {
     const all = await this.contestsRepository.list();
     // filter contests by user
     const allowed = all.filter(function(c) {
@@ -56,4 +58,6 @@ class ListContestsUseCase {
   }
 }
 
-export { ListContestsUseCase };
+export {
+  ListContestsUseCase
+};

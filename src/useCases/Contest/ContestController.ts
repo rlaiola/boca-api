@@ -27,6 +27,8 @@ import { HttpStatus } from "../../shared/definitions/HttpStatusCodes";
 import { UserType } from "../../shared/definitions/UserType";
 import { AuthPayload } from "../../shared/definitions/AuthPayload";
 
+import ContestValidator from "../../shared/validation/entities/ContestValidator";
+
 import { ContestRequestValidator } from "../../shared/validation/requests/ContestRequestValidator";
 
 import IdValidator from "../../shared/validation/utils/IdValidator";
@@ -159,6 +161,7 @@ class ContestController {
   ): Promise<Response | undefined> {
     const updateContestUseCase = container.resolve(UpdateContestUseCase);
     const idValidator = container.resolve(IdValidator);
+    const contestValidator = container.resolve(ContestValidator);
     
     const { id_c } = request.params;
     const contestnumber = Number(id_c);
@@ -174,6 +177,7 @@ class ContestController {
       contestlastmilescore,
       contestpenalty,
       contestmaxfilesize,
+      contestmainsite,
       contestlocalsite,
       contestactive,
     } = request.body;
@@ -182,7 +186,6 @@ class ContestController {
       contestmainsiteurl,
       contestunlockkey,
       contestkeys,
-      contestmainsite,
     } = request.body;
 
     try {
@@ -197,8 +200,11 @@ class ContestController {
         );
       }
 
-      // user of admin type can only edit a few properties
-      if (userPayload.usertype == UserType.ADMIN) {
+      // user of admin type that is not associated with the contest main site
+      // can only edit a few properties
+      const c = await contestValidator.exists(contestnumber);
+      if (userPayload.usertype == UserType.ADMIN &&
+          userPayload.usersitenumber != c.contestmainsite) {
         contestname = undefined;
         conteststartdate = undefined;
         contestduration = undefined;
@@ -209,7 +215,7 @@ class ContestController {
         //contestmainsiteurl
         //contestunlockkey
         //contestkeys
-        //contestmainsite
+        contestmainsite = undefined;
         contestlocalsite = undefined;
         contestactive = undefined;
       }
@@ -271,4 +277,6 @@ class ContestController {
   }
 }
 
-export { ContestController };
+export {
+  ContestController
+};

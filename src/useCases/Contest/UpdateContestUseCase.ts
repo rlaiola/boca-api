@@ -94,4 +94,6 @@ class UpdateContestUseCase {
   }
 }
 
-export { UpdateContestUseCase };
+export {
+  UpdateContestUseCase
+};

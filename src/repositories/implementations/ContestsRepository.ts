@@ -46,36 +46,6 @@ class ContestsRepository implements IContestsRepository {
     });
   }
 
-  async getActive(): Promise<Contest | undefined> {
-    const contest: Contest | null = await this.repository.findOneBy({
-      contestactive: true,
-    });
-    return contest != null ? contest : undefined;
-  }
-
-  async findByName(name: string): Promise<Contest | undefined> {
-    const contest: Contest | null = await this.repository.findOneBy({
-      contestname: name,
-    });
-    return contest != null ? contest : undefined;
-  }
-
-  async getLastId(): Promise<number | undefined> {
-    const lastIdResult: ILastIdResult | undefined = await this.repository
-      .createQueryBuilder("contest")
-      .select("MAX(contest.contestnumber)", "id")
-      .getRawOne();
-
-    return lastIdResult !== undefined ? lastIdResult.id : undefined;
-  }
-
-  async getById(id: number): Promise<Contest | undefined> {
-    const contest: Contest | null = await this.repository.findOneBy({
-      contestnumber: id,
-    });
-    return contest != null ? contest : undefined;
-  }
-
   async create(createObject: ICreateContestDTO): Promise<Contest> {
     const contest = this.repository.create(createObject);
     await this.repository.save(contest);
@@ -93,6 +63,36 @@ class ContestsRepository implements IContestsRepository {
     }
 
     return contest;
+  }
+
+  async getById(id: number): Promise<Contest | undefined> {
+    const contest: Contest | null = await this.repository.findOneBy({
+      contestnumber: id,
+    });
+    return contest != null ? contest : undefined;
+  }
+
+  async getLastId(): Promise<number | undefined> {
+    const lastIdResult: ILastIdResult | undefined = await this.repository
+      .createQueryBuilder("contest")
+      .select("MAX(contest.contestnumber)", "id")
+      .getRawOne();
+
+    return lastIdResult !== undefined ? lastIdResult.id : undefined;
+  }
+
+  async getActive(): Promise<Contest | undefined> {
+    const contest: Contest | null = await this.repository.findOneBy({
+      contestactive: true,
+    });
+    return contest != null ? contest : undefined;
+  }
+
+  async findByName(name: string): Promise<Contest | undefined> {
+    const contest: Contest | null = await this.repository.findOneBy({
+      contestname: name,
+    });
+    return contest != null ? contest : undefined;
   }
 
   async update(updateObject: IUpdateContestDTO): Promise<Contest> {
@@ -116,8 +116,8 @@ class ContestsRepository implements IContestsRepository {
         .set({ contestactive: false})
         .where("contestactive = TRUE AND contestnumber <> :contestnumber", {
           contestnumber: updateObject.contestnumber,
-      })
-      .execute();
+        })
+        .execute();
     }
 
     return this.repository.create(updatedContest);
@@ -128,9 +128,13 @@ class ContestsRepository implements IContestsRepository {
       .createQueryBuilder()
       .delete()
       .from(Contest)
-      .where("contestnumber = :contestnumber", { contestnumber: contestnumber })
+      .where("contestnumber = :contestnumber", {
+        contestnumber: contestnumber
+      })
       .execute();
   }
 }
 
-export { ContestsRepository };
+export {
+  ContestsRepository
+};

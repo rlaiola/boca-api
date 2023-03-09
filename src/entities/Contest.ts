@@ -23,11 +23,11 @@ import {
   IsBoolean,
   IsInt,
   IsPositive,
-  IsString,
-  Max,
-  MaxLength,
   Min,
+  Max,
+  IsString,
   MinLength,
+  MaxLength,
 } from "class-validator";
 
 import { IsType } from "../shared/validation/utils/IsType";
