@@ -30,4 +30,6 @@ interface AuthPayload {
   iss?: string;
 }
 
-export { AuthPayload };
+export {
+  AuthPayload
+};
