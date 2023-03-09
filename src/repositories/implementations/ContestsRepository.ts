@@ -69,6 +69,7 @@ class ContestsRepository implements IContestsRepository {
     const contest: Contest | null = await this.repository.findOneBy({
       contestnumber: id,
     });
+
     return contest != null ? contest : undefined;
   }
 
@@ -85,6 +86,7 @@ class ContestsRepository implements IContestsRepository {
     const contest: Contest | null = await this.repository.findOneBy({
       contestactive: true,
     });
+
     return contest != null ? contest : undefined;
   }
 
@@ -92,6 +94,7 @@ class ContestsRepository implements IContestsRepository {
     const contest: Contest | null = await this.repository.findOneBy({
       contestname: name,
     });
+
     return contest != null ? contest : undefined;
   }
 
