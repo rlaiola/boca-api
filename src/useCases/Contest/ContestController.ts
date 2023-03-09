@@ -62,43 +62,6 @@ class ContestController {
     }
   }
 
-  async getOne(
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> {
-    const getContestsUseCase = container.resolve(GetContestsUseCase);
-    const idValidator = container.resolve(IdValidator);
-
-    const { id_c } = request.params;
-    const contestnumber = Number(id_c);
-
-    // current user
-    const userPayload: AuthPayload = request.body.authtoken;
-
-    try {
-      idValidator.isContestId(contestnumber);
-
-      // check whether it's the fake contest or the user is not of system type
-      // and the contest is not the one the user is currently registered in
-      if (contestnumber === 0 || (userPayload.usertype !== UserType.SYSTEM && 
-                                  userPayload.contestnumber != contestnumber)) {
-        throw ApiError.forbidden(
-          "Authenticated user is unauthorized to use this endpoint"
-        );
-      }
-
-      // otherwise, retrieve contest
-      const contest = await getContestsUseCase.execute({ contestnumber });
-
-      return response
-        .status(HttpStatus.SUCCESS)
-        .json(contest);
-    } catch (error) {
-      next(error);
-    }
-  }
-
   async create(
     request: Request,
     response: Response,
@@ -150,6 +113,43 @@ class ContestController {
         .status(HttpStatus.CREATED)
         .json(contest);
     } catch (error) {console.log(error);
+      next(error);
+    }
+  }
+
+  async getOne(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> {
+    const getContestsUseCase = container.resolve(GetContestsUseCase);
+    const idValidator = container.resolve(IdValidator);
+
+    const { id_c } = request.params;
+    const contestnumber = Number(id_c);
+
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
+    try {
+      idValidator.isContestId(contestnumber);
+
+      // check whether it's the fake contest or the user is not of system type
+      // and the contest is not the one the user is currently registered in
+      if (contestnumber === 0 || (userPayload.usertype !== UserType.SYSTEM && 
+                                  userPayload.contestnumber != contestnumber)) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+
+      // otherwise, retrieve contest
+      const contest = await getContestsUseCase.execute({ contestnumber });
+
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(contest);
+    } catch (error) {
       next(error);
     }
   }
