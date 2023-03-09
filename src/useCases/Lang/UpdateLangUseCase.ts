@@ -68,4 +68,6 @@ class UpdateLangUseCase {
   }
 }
 
-export { UpdateLangUseCase };
+export {
+  UpdateLangUseCase
+};

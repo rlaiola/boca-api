@@ -40,10 +40,15 @@ class GetLangUseCase {
     this.langValidator = container.resolve(LangValidator);
   }
 
-  async execute({ contestnumber, langnumber }: IRequest): Promise<Lang> {
+  async execute({
+    contestnumber,
+    langnumber
+  }: IRequest): Promise<Lang> {
     await this.contestValidator.exists(contestnumber);
     return await this.langValidator.exists(contestnumber, langnumber);
   }
 }
 
-export { GetLangUseCase };
+export {
+  GetLangUseCase
+};

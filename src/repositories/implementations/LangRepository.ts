@@ -49,6 +49,12 @@ class LangRepository implements ILangRepository {
     });
   }
 
+  async create(createObject: ICreateLangDTO): Promise<Lang> {
+    const lang = this.repository.create(createObject);
+    await this.repository.save(lang);
+    return lang;
+  }
+
   async getById(
     contestnumber: number,
     langnumber: number
@@ -71,12 +77,6 @@ class LangRepository implements ILangRepository {
       .getRawOne();
 
     return lastIdResult !== undefined ? lastIdResult.id : undefined;
-  }
-
-  async create(createObject: ICreateLangDTO): Promise<Lang> {
-    const lang = this.repository.create(createObject);
-    await this.repository.save(lang);
-    return lang;
   }
 
   async update(updateObject: IUpdateLangDTO): Promise<Lang> {
@@ -102,10 +102,16 @@ class LangRepository implements ILangRepository {
       .createQueryBuilder()
       .delete()
       .from(Lang)
-      .where("contestnumber = :contestnumber", { contestnumber: contestnumber })
-      .andWhere("langnumber = :langnumber", { langnumber: langnumber })
+      .where("contestnumber = :contestnumber", { 
+        contestnumber: contestnumber
+      })
+      .andWhere("langnumber = :langnumber", {
+        langnumber: langnumber
+      })
       .execute();
   }
 }
 
-export { LangRepository };
+export {
+  LangRepository
+};

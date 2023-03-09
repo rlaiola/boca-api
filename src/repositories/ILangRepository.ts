@@ -40,16 +40,16 @@ interface ILastIdResult {
 
 interface ILangRepository {
   list(contestnumber: number): Promise<Lang[]>;
-  getById(contestnumber: number, langnumber: number): Promise<Lang | undefined>;
   create(lang: ICreateLangDTO): Promise<Lang>;
+  getById(contestnumber: number, langnumber: number): Promise<Lang | undefined>;
   getLastId(contestnumber: number): Promise<number | undefined>;
   update(lang: IUpdateLangDTO): Promise<Lang>;
   delete(contestnumber: number, langnumber: number): Promise<void>;
 }
 
 export {
-  ILangRepository, 
-  ILastIdResult, 
-  ICreateLangDTO, 
-  IUpdateLangDTO
+  ILangRepository,
+  ICreateLangDTO,
+  ILastIdResult,
+  IUpdateLangDTO,
 };

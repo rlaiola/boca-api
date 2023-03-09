@@ -76,49 +76,6 @@ class LangController {
     }
   }
 
-  async getOne(
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> {
-    const getLangUseCase = container.resolve(GetLangUseCase);
-    const idValidator = container.resolve(IdValidator);
-
-    const { id_c } = request.params;
-    const { id_l } = request.params;
-    const contestnumber = Number(id_c);
-    const langnumber = Number(id_l);
-
-    // current user
-    const userPayload: AuthPayload = request.body.authtoken;
-
-    try {
-      idValidator.isContestId(contestnumber);
-      idValidator.isLangId(langnumber);
-
-      // check whether it's the fake contest or the contest is not the one
-      // the user is currently registered in
-      if (contestnumber === 0 ||
-          userPayload.contestnumber != contestnumber) {
-        throw ApiError.forbidden(
-          "Authenticated user is unauthorized to use this endpoint"
-        );
-      }
-
-      // otherwise, retrieve language
-      const lang = await getLangUseCase.execute({
-        contestnumber,
-        langnumber,
-      });
-
-      return response
-        .status(HttpStatus.SUCCESS)
-        .json(lang);
-    } catch (error) {
-      next(error);
-    }
-  }
-
   async create(
     request: Request,
     response: Response,
@@ -164,6 +121,49 @@ class LangController {
         .setHeader('Content-Location', 
           `/api/contest/${lang.contestnumber}/language/${lang.langnumber}`)
         .status(HttpStatus.CREATED)
+        .json(lang);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getOne(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> {
+    const getLangUseCase = container.resolve(GetLangUseCase);
+    const idValidator = container.resolve(IdValidator);
+
+    const { id_c } = request.params;
+    const { id_l } = request.params;
+    const contestnumber = Number(id_c);
+    const langnumber = Number(id_l);
+
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
+    try {
+      idValidator.isContestId(contestnumber);
+      idValidator.isLangId(langnumber);
+
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+          userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+
+      // otherwise, retrieve language
+      const lang = await getLangUseCase.execute({
+        contestnumber,
+        langnumber,
+      });
+
+      return response
+        .status(HttpStatus.SUCCESS)
         .json(lang);
     } catch (error) {
       next(error);
@@ -262,4 +262,6 @@ class LangController {
   }
 }
 
-export { LangController };
+export {
+  LangController
+};

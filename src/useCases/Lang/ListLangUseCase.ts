@@ -41,10 +41,14 @@ class ListLangUseCase {
     this.contestValidator = container.resolve(ContestValidator);
   }
 
-  async execute({ contestnumber }: IRequest): Promise<Lang[]> {
+  async execute({
+    contestnumber
+  }: IRequest): Promise<Lang[]> {
     await this.contestValidator.exists(contestnumber);
     return await this.langRepository.list(contestnumber);
   }
 }
 
-export { ListLangUseCase };
+export {
+  ListLangUseCase
+};

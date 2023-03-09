@@ -86,4 +86,6 @@ class CreateLangUseCase {
   }
 }
 
-export { CreateLangUseCase };
+export {
+  CreateLangUseCase
+};

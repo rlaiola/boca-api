@@ -43,11 +43,16 @@ class DeleteLangUseCase {
     this.langValidator = container.resolve(LangValidator);
   }
 
-  async execute({ contestnumber, langnumber }: IRequest): Promise<void> {
+  async execute({ 
+    contestnumber, 
+    langnumber 
+  }: IRequest): Promise<void> {
     await this.contestValidator.exists(contestnumber);
     await this.langValidator.exists(contestnumber, langnumber);
     await this.langRepository.delete(contestnumber, langnumber);
   }
 }
 
-export { DeleteLangUseCase };
+export {
+  DeleteLangUseCase
+};
