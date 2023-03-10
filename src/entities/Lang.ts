@@ -85,7 +85,7 @@ const langPKBaseSchema = {
   properties: {
     contestnumber: {
       type: "number",
-      description: "Contest id",
+      description: "Number (id) of the contest",
       minimum: 1,
       maximum: 2147483647,
     },
@@ -97,7 +97,7 @@ const langPKSchema = {
   properties: {
     langnumber: {
       type: "number",
-      description: "Language id",
+      description: "Number (id) of the language",
       minimum: 1,
       maximum: 2147483647,
     },
@@ -109,13 +109,13 @@ const langRequestSchema = {
   properties: {
     langname: {
       type: "string",
-      description: "Language name",
+      description: "Name of the language",
       minLength: 1,
       maxLength: 50,
     },
     langextension: {
       type: "string",
-      description: "Language extension",
+      description: "Extension of the source files in such language",
       minLength: 1,
       maxLength: 20,
     },
@@ -132,7 +132,7 @@ const langResponseSchema = {
     ...langRequestSchema.properties,
     updatetime: {
       type: "number",
-      description: "Unix timestamp of language last update",
+      description: "Time of the language last update (Unix timestamp)",
       minimum: 1,
     },
   },

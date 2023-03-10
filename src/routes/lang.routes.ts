@@ -35,6 +35,9 @@ const langController = new LangController();
  * tags:
  *   - name: Language
  *     description: Endpoints to manage programming languages
+ *     externalDocs:
+ *       description: Find out more
+ *       url: "https://www.ime.usp.br/~cassio/boca/boca/doc/ADMIN.txt"
  * /api/contest/{id_c}/language:
  *   get:
  *     tags: ["Language"]
