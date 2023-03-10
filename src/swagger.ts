@@ -32,6 +32,12 @@ import {
   updateLangSchema,
 } from "./entities/Lang";
 
+import {
+  siteResponseSchema,
+  createSiteSchema,
+  updateSiteSchema,
+} from "./entities/Site";
+
 import { errorSchema } from "./errors/ApiError";
 
 const options = {
@@ -41,10 +47,18 @@ const options = {
       title: "BOCA API",
       version: "1.0.0",
       description: "A RESTful API for managing BOCA Online Contest Administrator",
+      contact: {
+        name: "Contact the developer",
+        url: "https://github.com/leodeorce/boca-api/issues",
+      },
       license: {
         name: "GPL-3.0 license",
-        url: "https://github.com/leodeorce/boca-api/blob/master/LICENSE"
+        url: "https://github.com/leodeorce/boca-api/blob/master/LICENSE",
       },
+    },
+    externalDocs: {
+      description: "Find out more about BOCA",
+      url: "https://www.ime.usp.br/~cassio/boca/",
     },
     basePath: '/api',
     servers: [
@@ -64,6 +78,10 @@ const options = {
         Language: langResponseSchema,
         CreateLanguage: createLangSchema,
         UpdateLanguage: updateLangSchema,
+        // Site
+        Site: siteResponseSchema,
+        CreateSite: createSiteSchema,
+        UpdateSite: updateSiteSchema,
       },
       securitySchemes: {
         bearerAuth: {           // arbitrary name for the security scheme
