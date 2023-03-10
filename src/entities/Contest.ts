@@ -214,7 +214,7 @@ const contestRequestSchema = {
     },
     contestlastmileanswer: {
       type: "number",
-      description: "Elapsed time from contest start date to stop answering runs (in seconds)",
+      description: "Elapsed time from contest start date to stop answering (in seconds)",
       minimum: 0,
       maximum: 2147483647,
     },
@@ -255,13 +255,13 @@ const contestRequestSchema = {
     },
     contestmainsite: {
       type: "number",
-      description: "Main site id",
+      description: "Contest main site id",
       minimum: 1,
       maximum: 2147483647,
     },
     contestlocalsite: {
       type: "number",
-      description: "Local site id",
+      description: "Contest local site id",
       minimum: 1,
       maximum: 2147483647,
     },
