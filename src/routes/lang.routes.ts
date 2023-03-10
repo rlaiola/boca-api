@@ -34,7 +34,7 @@ const langController = new LangController();
  * @swagger
  * tags:
  *   - name: Language
- *     description: Endpoints to manage programming languages
+ *     description: Endpoints to manage programming languages used in contests
  *     externalDocs:
  *       description: Find out more
  *       url: "https://www.ime.usp.br/~cassio/boca/boca/doc/ADMIN.txt"
