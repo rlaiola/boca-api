@@ -48,4 +48,6 @@ class UserRequestValidator extends RequestValidator {
   }
 }
 
-export { UserRequestValidator };
+export {
+  UserRequestValidator
+};
