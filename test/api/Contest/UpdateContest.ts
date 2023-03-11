@@ -697,7 +697,6 @@ describe("Update contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = updateContestBetaPass;
 
       const response = await request(URL)
@@ -717,7 +716,6 @@ describe("Update contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.UPDATED);
@@ -745,7 +743,6 @@ describe("Update contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = updateContestBetaPass;
 
       const response = await request(URL)
@@ -765,7 +762,6 @@ describe("Update contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.UPDATED);
@@ -793,7 +789,6 @@ describe("Update contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = updateContestAlphaPass;
 
       const response = await request(URL)
@@ -813,7 +808,6 @@ describe("Update contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.UPDATED);

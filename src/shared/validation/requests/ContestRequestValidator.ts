@@ -23,6 +23,7 @@ import { injectable } from "tsyringe";
 import {
   createContestRequiredProperties,
   updateContestRequiredProperties,
+  activateContestRequiredProperties,
 } from "../../../entities/Contest";
 
 import { RequestValidator } from "./RequestValidator";
@@ -36,6 +37,12 @@ class ContestRequestValidator extends RequestValidator {
   hasRequiredUpdateProperties(request: object): void {
     this.hasRequiredProperties(request, updateContestRequiredProperties);
   }
+
+  hasRequiredActivateProperties(request: object): void {
+    this.hasRequiredProperties(request, activateContestRequiredProperties);
+  }
 }
 
-export { ContestRequestValidator };
+export {
+  ContestRequestValidator
+};

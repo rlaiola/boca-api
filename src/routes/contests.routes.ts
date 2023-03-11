@@ -35,6 +35,9 @@ const contestController = new ContestController();
  * tags:
  *   - name: Contest
  *     description: Endpoints to manage coding competitions
+ *     externalDocs:
+ *       description: Find out more
+ *       url: "https://www.ime.usp.br/~cassio/boca/boca/doc/ADMIN.txt"
  * /api/contest:
  *   get:
  *     tags: ["Contest"]
@@ -85,7 +88,7 @@ contestsRoutes.get(
  *       properties are required, with the exception of *contestnumber*,
  *       *contestlastmileanswer*, and *contestlastmilescore*. If supplied, 
  *       *contestnumber* will be used only if the value has not already been
- *       assigned to another contest.
+ *       assigned to another contest. By default, a new contest is inactive.
  *     operationId: createContest
  *     security:
  *       - bearerAuth: []
@@ -112,7 +115,6 @@ contestsRoutes.get(
  *                 contestkeys: "[d3g22q]"
  *                 contestmainsite: 1
  *                 contestlocalsite: 1
- *                 contestactive: false
  *     responses:
  *       201:
  *         description: 'Success: Contest created'
@@ -230,9 +232,10 @@ contestsRoutes.get(
  *       Updates a contest based on ID (*contestnumber*). Users of _system_ and
  *       of _admin_ types (this one associated with the given contest) have
  *       permission for this operation. The latter is allowed to update all
- *       properties only if belonging to the contest main site. Otherwise, the
- *       just the modification of the following properties is allowed:
- *       *contestmainsiteurl*, *contestunlockkey*, *contestkeys* and *contestmainsite*.
+ *       properties only if belonging to the main site of the contest. Otherwise,
+ *       just the modification of the following properties is allowed: 
+ *       *contestmainsiteurl*, *contestunlockkey*, *contestkeys* and 
+ *       *contestmainsite*.
  *     operationId: updateContestById
  *     security:
  *       - bearerAuth: []
@@ -266,7 +269,6 @@ contestsRoutes.get(
  *                 contestkeys: ""
  *                 contestmainsite: 2
  *                 contestlocalsite: 5
- *                 contestactive: false
  *     responses:
  *       204:
  *         description: 'Success: Contest updated'
@@ -357,6 +359,76 @@ contestsRoutes.delete(
     UserType.SYSTEM, // the user of system type only has permission for this operation
   ]),
   contestController.delete
+);
+
+/**
+ * @swagger
+ * /api/contest/{id_c}:
+ *   patch:
+ *     tags: ["Contest"]
+ *     summary: Activate a contest by ID
+ *     description: |
+ *       Sets the active state of a contest based on ID (*contestnumber*).
+ *       A user of _system_ type only has permission for this operation. There
+ *       must be at most one contest running at a time; thus if requested the
+ *       update and there is already another contest active this will be
+ *       deactivated as part of the process.
+ *     operationId: activateContestById
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id_c
+ *         in: path
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID (*contestnumber*) of the contest to update
+ *     requestBody:
+ *       description: Contest property to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ActivateContest'
+ *           examples:
+ *             contest:
+ *               summary: An example of contest activation
+ *               value:
+ *                 contestactive: true
+ *     responses:
+ *       204:
+ *         description: 'Success: Contest updated'
+ *       400:
+ *         description: 'Bad Request: Missing required contest property or the supplied is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: 'Unauthorized: Authentication header is missing or the supplied API access token is invalid'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: 'Forbidden: The user associated with the API access token has no permission for the requested operation'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: 'Not Found: The contest specified in the request does not exist'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+contestsRoutes.patch(
+  "/contest/:id_c",
+  authenticate([
+    UserType.SYSTEM, // the user of system type only has permission for this operation
+  ]),
+  contestController.activate
 );
 
 export {

@@ -40,6 +40,7 @@ import { DeleteContestsUseCase } from "./DeleteContestUseCase";
 import { GetContestsUseCase } from "./GetContestUseCase";
 import { ListContestsUseCase } from "./ListContestsUseCase";
 import { UpdateContestUseCase } from "./UpdateContestUseCase";
+import { ActivateContestUseCase } from "./ActivateContestUseCase";
 
 class ContestController {
   async listAll(
@@ -84,8 +85,10 @@ class ContestController {
       contestkeys,
       contestmainsite,
       contestlocalsite,
-      contestactive,
     } = request.body;
+
+    // a contest always starts deactivated
+    const contestactive = false;
 
     try {
       contestRequestValidator.hasRequiredCreateProperties(request.body);
@@ -179,7 +182,6 @@ class ContestController {
       contestmaxfilesize,
       contestmainsite,
       contestlocalsite,
-      contestactive,
     } = request.body;
 
     const {
@@ -187,6 +189,9 @@ class ContestController {
       contestunlockkey,
       contestkeys,
     } = request.body;
+
+    // there are specific endpoints to activate and deactivate a contest
+    const contestactive = undefined;
 
     try {
       idValidator.isContestId(contestnumber);
@@ -217,7 +222,6 @@ class ContestController {
         //contestkeys
         contestmainsite = undefined;
         contestlocalsite = undefined;
-        contestactive = undefined;
       }
 
       await updateContestUseCase.execute({
@@ -275,6 +279,40 @@ class ContestController {
       next(error);
     }
   }
+
+  async activate(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> {
+    const activateContestUseCase = container.resolve(ActivateContestUseCase);
+    const idValidator = container.resolve(IdValidator);
+    const contestRequestValidator = container.resolve(ContestRequestValidator);
+
+    const { id_c } = request.params;
+    const contestnumber = Number(id_c);
+
+    const {
+      contestactive,
+    } = request.body;
+
+    try {
+      idValidator.isContestId(contestnumber);
+      contestRequestValidator.hasRequiredActivateProperties(request.body);
+
+      await activateContestUseCase.execute({
+        contestnumber,
+        contestactive,
+      });
+
+      return response
+        .status(HttpStatus.UPDATED)
+        .json();
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }
 
 export {

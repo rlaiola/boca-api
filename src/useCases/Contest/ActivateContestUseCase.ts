@@ -28,23 +28,11 @@ import ContestValidator from "../../shared/validation/entities/ContestValidator"
 
 interface IRequest {
   contestnumber: number;
-  contestname: string;
-  conteststartdate: number;
-  contestduration: number;
-  contestlastmileanswer?: number;
-  contestlastmilescore?: number;
-  contestpenalty: number;
-  contestmaxfilesize: number;
-  contestmainsiteurl: string;
-  contestunlockkey: string;
-  contestkeys: string;
-  contestmainsite: number;
-  contestlocalsite: number;
-  contestactive: boolean | undefined;
+  contestactive: boolean;
 }
 
 @injectable()
-class UpdateContestUseCase {
+class ActivateContestUseCase {
   private contestValidator: ContestValidator;
 
   constructor(
@@ -56,37 +44,25 @@ class UpdateContestUseCase {
 
   async execute({
     contestnumber,
-    contestname,
-    conteststartdate,
-    contestduration,
-    contestlastmileanswer,
-    contestlastmilescore,
-    contestpenalty,
-    contestmaxfilesize,
-    contestmainsiteurl,
-    contestunlockkey,
-    contestkeys,
-    contestmainsite,
-    contestlocalsite,
     contestactive,
   }: IRequest): Promise<Contest> {
     const old = await this.contestValidator.exists(contestnumber);
 
     const latest = new Contest(
       contestnumber,
-      contestname !== undefined ? contestname : old.contestname,
-      conteststartdate !== undefined ? conteststartdate : old.conteststartdate,
-      contestduration !== undefined ? contestduration : old.contestduration,
-      contestlastmileanswer !== undefined ? contestlastmileanswer : old.contestlastmileanswer,
-      contestlastmilescore !== undefined ? contestlastmilescore : old.contestlastmilescore,
-      contestpenalty !== undefined ? contestpenalty : old.contestpenalty,
-      contestmaxfilesize !== undefined ? contestmaxfilesize : old.contestmaxfilesize,
-      contestmainsiteurl !== undefined ? contestmainsiteurl : old.contestmainsiteurl,
-      contestunlockkey !== undefined ? contestunlockkey : old.contestunlockkey,
-      contestkeys !== undefined ? contestkeys : old.contestkeys,
-      contestmainsite !== undefined ? contestmainsite : old.contestmainsite,
-      contestlocalsite !== undefined ? contestlocalsite : old.contestlocalsite,
-      contestactive !== undefined ? contestactive : old.contestactive
+      old.contestname,
+      old.conteststartdate,
+      old.contestduration,
+      old.contestlastmileanswer,
+      old.contestlastmilescore,
+      old.contestpenalty,
+      old.contestmaxfilesize,
+      old.contestmainsiteurl,
+      old.contestunlockkey,
+      old.contestkeys,
+      old.contestmainsite,
+      old.contestlocalsite,
+      contestactive,
     );
 
     await this.contestValidator.isValid(latest);
@@ -95,5 +71,5 @@ class UpdateContestUseCase {
 }
 
 export {
-  UpdateContestUseCase
+  ActivateContestUseCase
 };

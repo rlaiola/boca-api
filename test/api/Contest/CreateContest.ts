@@ -99,7 +99,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -120,7 +119,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -150,7 +148,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -171,7 +168,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -201,7 +197,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -222,7 +217,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -252,7 +246,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -273,7 +266,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -303,7 +295,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -324,7 +315,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -354,7 +344,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -375,7 +364,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -405,7 +393,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -426,7 +413,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -456,7 +442,6 @@ describe("Create contest testing scenarios", () => {
         //contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -477,7 +462,6 @@ describe("Create contest testing scenarios", () => {
           //contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -507,7 +491,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         //contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -528,7 +511,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           //contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -558,7 +540,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         //contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -579,58 +560,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           //contestlocalsite,
-          contestactive,
-        });
-
-      expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-      expect(response.headers["content-type"]).to.contain("application/json");
-      expect(response.body).to.have.own.property("error");
-      expect(response.body).to.have.own.property("message");
-    });
-
-    it("Missing contestactive", async () => {
-      const token = await getToken(
-        pass,
-        salt,
-        "system"
-      );
-
-      //const contestnumber = 1;
-      const {
-        contestname,
-        conteststartdate,
-        contestduration,
-        contestlastmileanswer,
-        contestlastmilescore,
-        contestpenalty,
-        contestmaxfilesize,
-        contestmainsiteurl,
-        contestunlockkey,
-        contestkeys,
-        contestmainsite,
-        contestlocalsite,
-        //contestactive,
-      } = createContestAlphaPass;
-
-      const response = await request(URL)
-        .post("/api/contest")
-        .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          //contestnumber,
-          contestname,
-          conteststartdate,
-          contestduration,
-          contestlastmileanswer,
-          contestlastmilescore,
-          contestpenalty,
-          contestmaxfilesize,
-          contestmainsiteurl,
-          contestunlockkey,
-          contestkeys,
-          contestmainsite,
-          contestlocalsite,
-          //contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -660,7 +589,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -681,7 +609,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -711,7 +638,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -732,7 +658,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -763,7 +688,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -784,7 +708,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -815,7 +738,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -836,7 +758,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -867,7 +788,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -888,7 +808,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -919,7 +838,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -940,7 +858,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -971,7 +888,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -992,7 +908,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1023,7 +938,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1044,7 +958,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1075,7 +988,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1096,7 +1008,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1127,7 +1038,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1148,7 +1058,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1179,7 +1088,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1200,7 +1108,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1231,7 +1138,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1252,7 +1158,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1283,7 +1188,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1304,7 +1208,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1335,7 +1238,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1356,7 +1258,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1387,7 +1288,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1408,7 +1308,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1439,7 +1338,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1460,7 +1358,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1491,7 +1388,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1512,7 +1408,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1543,7 +1438,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1564,7 +1458,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1595,7 +1488,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         //contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1616,7 +1508,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1647,7 +1538,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         //contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1668,7 +1558,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1699,7 +1588,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         //contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1720,7 +1608,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1751,7 +1638,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         //contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1772,7 +1658,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
@@ -1861,7 +1746,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1882,7 +1766,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.ALREADY_EXISTS);
@@ -1916,7 +1799,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -1937,7 +1819,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.CREATED);
@@ -1968,7 +1849,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestBetaPass;
 
       const response = await request(URL)
@@ -1989,7 +1869,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.CREATED);
@@ -2020,7 +1899,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -2041,7 +1919,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.CREATED);
@@ -2072,7 +1949,6 @@ describe("Create contest testing scenarios", () => {
         contestkeys,
         contestmainsite,
         contestlocalsite,
-        contestactive,
       } = createContestAlphaPass;
 
       const response = await request(URL)
@@ -2093,7 +1969,6 @@ describe("Create contest testing scenarios", () => {
           contestkeys,
           contestmainsite,
           contestlocalsite,
-          contestactive,
         });
 
       expect(response.statusCode).to.equal(HttpStatus.CREATED);

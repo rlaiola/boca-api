@@ -23,3 +23,4 @@ import "./CreateContest";
 import "./GetContest";
 import "./UpdateContest";
 import "./DeleteContest";
+import "./ActivateContest";

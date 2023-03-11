@@ -162,7 +162,6 @@ const createContestRequiredProperties = [
   "contestkeys",
   "contestmainsite",
   "contestlocalsite",
-  "contestactive",
 ];
 
 const updateContestRequiredProperties = [
@@ -176,6 +175,9 @@ const updateContestRequiredProperties = [
   "contestkeys",
   "contestmainsite",
   "contestlocalsite",
+];
+
+const activateContestRequiredProperties = [
   "contestactive",
 ];
 
@@ -184,7 +186,7 @@ const contestPKSchema = {
   properties: {
     contestnumber: {
       type: "number",
-      description: "Contest id",
+      description: "Number (id) of the contest",
       minimum: 1,
       maximum: 2147483647,
     },
@@ -196,55 +198,62 @@ const contestRequestSchema = {
   properties: {
     contestname: {
       type: "string",
-      description: "Contest name",
+      description: "Name of the contest",
       minLength: 1,
       maxLength: 100,
     },
     conteststartdate: {
       type: "number",
-      description: "Unix timestamp of contest start date",
+      description: "Start date of the contest (Unix timestamp)",
       minimum: 0,
       maximum: 2147483647,
     },
     contestduration: {
       type: "number",
-      description: "Contest duration (in seconds)",
+      description: "Duration of the contest (in seconds)",
       minimum: 1,
       maximum: 2147483647,
     },
     contestlastmileanswer: {
       type: "number",
-      description: "Elapsed time from contest start date to stop answering (in seconds)",
+      description: "Elapsed time (in seconds) from the start date of the \
+        contest to stop communicating teams whether their runs were \
+        accepted or not",
       minimum: 0,
       maximum: 2147483647,
     },
     contestlastmilescore: {
       type: "number",
-      description: "Elapsed time from contest start date to stop updating scoreboard (in seconds)",
+      description: "Elapsed time (in seconds) from the start date of the \
+        contest to stop updating scoreboard (and keep the winner secret)",
       minimum: 0,
       maximum: 2147483647,
     },
     contestpenalty: {
       type: "number",
-      description: "Time penalty for failed runs (in seconds)",
+      description: "Number of seconds a team is penalized for each time it \
+        submits a run that is not accepted (considered only if the team \
+        receives an YES for the corresponding problem, as done in ACM-ICPC \
+        like contests)",
       minimum: 0,
       maximum: 2147483647,
     },
     contestmaxfilesize: {
       type: "number",
-      description: "Max file size allowed for teams (in KB)",
+      description: "Max file size (in Kb) allowed for teams (for security \
+        reasons)",
       minimum: 1,
       maximum: 2147483647,
     },
     contestmainsiteurl: {
       type: "string",
-      description: "Main site URL",
+      description: "Main site URL (e.g., 127.0.0.1/boca)",
       minLength: 0,
       maxLength: 200,
     },
     contestunlockkey: {
       type: "string",
-      description: "Unlock password for problem files (only use it within a secure network)",
+      description: "Unlock password (only use it within a secure network)",
       minLength: 0,
       maxLength: 100,
     },
@@ -255,19 +264,30 @@ const contestRequestSchema = {
     },
     contestmainsite: {
       type: "number",
-      description: "Contest main site id",
+      description: "Number (id) of the contest main site (usually 1). IF \
+        RUNNING MULTIPLE SITES, BE SURE TO USE THE CORRECT NUMBER HERE \
+        ASSIGNED BY WHOEVER IS COORDINATING THE MULTI-SITE CONTEST!!",
       minimum: 1,
       maximum: 2147483647,
     },
     contestlocalsite: {
       type: "number",
-      description: "Contest local site id",
+      description: "Number (id) of the contest local site. IF RUNNING \
+        MULTIPLE SITES, BE SURE TO USE THE CORRECT NUMBER HERE ASSIGNED BY \
+        WHOEVER IS COORDINATING THE MULTI-SITE CONTEST!!",
       minimum: 1,
       maximum: 2147483647,
     },
+  },
+};
+
+const activateRequestContestSchema = {
+  type: "object",
+  properties: {
     contestactive: {
       type: "boolean",
-      description: "Active state",
+      description: "Indicates whether or not the contest is active (only one \
+        contest can be active at a time)",
     },
   },
 };
@@ -275,12 +295,14 @@ const contestRequestSchema = {
 const contestResponseSchema = {
   ...contestPKSchema,
   ...contestRequestSchema,
+  ...activateRequestContestSchema,
   properties: {
     ...contestPKSchema.properties,
     ...contestRequestSchema.properties,
+    ...activateRequestContestSchema.properties,
     updatetime: {
       type: "number",
-      description: "Unix timestamp of contest last update",
+      description: "Time of the contest last update (Unix timestamp)",
       minimum: 1,
     },
   },
@@ -301,11 +323,18 @@ const updateContestSchema = {
   //required: updateContestRequiredProperties,
 };
 
+const activateContestSchema = {
+  ...activateRequestContestSchema,
+  required: activateContestRequiredProperties,
+};
+
 export {
   Contest,
   createContestRequiredProperties,
   updateContestRequiredProperties,
+  activateContestRequiredProperties,
   contestResponseSchema,
   createContestSchema,
   updateContestSchema,
+  activateContestSchema,
 };
