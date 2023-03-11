@@ -69,4 +69,6 @@ class SiteRequestValidator extends RequestValidator {
   }
 }
 
-export { SiteRequestValidator };
+export {
+  SiteRequestValidator
+};
