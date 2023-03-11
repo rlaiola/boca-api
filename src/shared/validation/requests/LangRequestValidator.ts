@@ -39,4 +39,6 @@ class LangRequestValidator extends RequestValidator {
   }
 }
 
-export { LangRequestValidator };
+export {
+  LangRequestValidator
+};
