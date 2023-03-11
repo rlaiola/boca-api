@@ -37,4 +37,6 @@ class AnswerRequestValidator extends RequestValidator {
   }
 }
 
-export { AnswerRequestValidator };
+export {
+  AnswerRequestValidator
+};
