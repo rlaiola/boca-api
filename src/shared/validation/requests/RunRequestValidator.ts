@@ -49,4 +49,6 @@ class RunRequestValidator extends RequestValidator {
   }
 }
 
-export { RunRequestValidator };
+export {
+  RunRequestValidator
+};
