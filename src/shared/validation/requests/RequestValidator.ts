@@ -47,4 +47,6 @@ class RequestValidator {
   }
 }
 
-export { RequestValidator };
+export {
+  RequestValidator
+};
