@@ -43,4 +43,6 @@ class ProblemRequestValidator extends RequestValidator {
   }
 }
 
-export { ProblemRequestValidator };
+export {
+  ProblemRequestValidator
+};
