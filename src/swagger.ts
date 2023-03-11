@@ -24,6 +24,7 @@ import {
   contestResponseSchema,
   createContestSchema,
   updateContestSchema,
+  activateContestSchema
 } from "./entities/Contest";
 
 import {
@@ -74,6 +75,7 @@ const options = {
         Contest: contestResponseSchema,
         CreateContest: createContestSchema,
         UpdateContest: updateContestSchema,
+        ActivateContest: activateContestSchema,
         // Language
         Language: langResponseSchema,
         CreateLanguage: createLangSchema,
