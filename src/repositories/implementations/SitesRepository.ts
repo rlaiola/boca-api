@@ -25,9 +25,9 @@ import { AppDataSource } from "../../database";
 import { Site } from "../../entities/Site";
 
 import {
-  ILastIdResult,
-  ICreateSiteDTO,
   ISitesRepository,
+  ICreateSiteDTO,
+  ILastIdResult,
   IUpdateSiteDTO,
 } from "../ISitesRepository";
 
@@ -40,8 +40,31 @@ class SitesRepository implements ISitesRepository {
 
   async list(contestnumber: number): Promise<Site[]> {
     return await this.repository.find({
-      where: { contestnumber: contestnumber },
+      where: {
+        contestnumber: contestnumber
+      },
+      order: {
+        sitenumber: "ASC"
+      }
     });
+  }
+
+  async create(createObject: ICreateSiteDTO): Promise<Site> {
+    const site = this.repository.create(createObject);
+    await this.repository.save(site);
+    return site;
+  }
+
+  async getById(
+    contestnumber: number,
+    sitenumber: number
+  ): Promise<Site | undefined> {
+    const site: Site | null = await this.repository.findOneBy({
+      contestnumber: contestnumber,
+      sitenumber: sitenumber,
+    });
+
+    return site != null ? site : undefined;
   }
 
   async getLastId(contestnumber: number): Promise<number | undefined> {
@@ -54,23 +77,6 @@ class SitesRepository implements ISitesRepository {
       .getRawOne();
 
     return lastIdResult !== undefined ? lastIdResult.id : undefined;
-  }
-
-  async getById(
-    contestnumber: number,
-    sitenumber: number
-  ): Promise<Site | undefined> {
-    const site: Site | null = await this.repository.findOneBy({
-      contestnumber: contestnumber,
-      sitenumber: sitenumber,
-    });
-    return site != null ? site : undefined;
-  }
-
-  async create(createObject: ICreateSiteDTO): Promise<Site> {
-    const site = this.repository.create(createObject);
-    await this.repository.save(site);
-    return site;
   }
 
   async update(updateObject: IUpdateSiteDTO): Promise<Site> {
@@ -96,10 +102,16 @@ class SitesRepository implements ISitesRepository {
       .createQueryBuilder()
       .delete()
       .from(Site)
-      .where("contestnumber = :contestnumber", { contestnumber: contestnumber })
-      .andWhere("sitenumber = :sitenumber", { sitenumber: sitenumber })
+      .where("contestnumber = :contestnumber", { 
+        contestnumber: contestnumber
+      })
+      .andWhere("sitenumber = :sitenumber", {
+        sitenumber: sitenumber
+      })
       .execute();
   }
 }
 
-export { SitesRepository };
+export {
+  SitesRepository 
+};

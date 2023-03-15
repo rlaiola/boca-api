@@ -26,8 +26,8 @@ import ContestValidator from "../../shared/validation/entities/ContestValidator"
 import SiteValidator from "../../shared/validation/entities/SiteValidator";
 
 interface IRequest {
-  sitenumber: number;
   contestnumber: number;
+  sitenumber: number;
 }
 
 @injectable()
@@ -43,11 +43,16 @@ class DeleteSiteUseCase {
     this.siteValidator = container.resolve(SiteValidator);
   }
 
-  async execute({ sitenumber, contestnumber }: IRequest): Promise<void> {
+  async execute({
+    contestnumber,
+    sitenumber
+  }: IRequest): Promise<void> {
     await this.contestValidator.exists(contestnumber);
     await this.siteValidator.exists(contestnumber, sitenumber);
     await this.sitesRepository.delete(sitenumber, contestnumber);
   }
 }
 
-export { DeleteSiteUseCase };
+export {
+  DeleteSiteUseCase
+};

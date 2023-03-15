@@ -26,8 +26,8 @@ import ContestValidator from "../../shared/validation/entities/ContestValidator"
 import SiteValidator from "../../shared/validation/entities/SiteValidator";
 
 interface IRequest {
-  sitenumber: number;
   contestnumber: number;
+  sitenumber: number;
 }
 
 @injectable()
@@ -41,12 +41,14 @@ class GetSiteUseCase {
   }
 
   async execute({
-    sitenumber,
     contestnumber,
+    sitenumber,
   }: IRequest): Promise<Site | undefined> {
     await this.contestValidator.exists(contestnumber);
     return await this.siteValidator.exists(contestnumber, sitenumber);
   }
 }
 
-export { GetSiteUseCase };
+export {
+  GetSiteUseCase
+};

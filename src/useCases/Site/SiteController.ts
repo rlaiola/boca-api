@@ -24,10 +24,16 @@ import { NextFunction, Request, Response } from "express";
 import { container } from "tsyringe";
 
 import { HttpStatus } from "../../shared/definitions/HttpStatusCodes";
+import { UserType } from "../../shared/definitions/UserType";
+import { AuthPayload } from "../../shared/definitions/AuthPayload";
+
+import ContestValidator from "../../shared/validation/entities/ContestValidator";
 
 import { SiteRequestValidator } from "../../shared/validation/requests/SiteRequestValidator";
 
 import IdValidator from "../../shared/validation/utils/IdValidator";
+
+import { ApiError } from "../../errors/ApiError";
 
 import { CreateSiteUseCase } from "./CreateSiteUseCase";
 import { DeleteSiteUseCase } from "./DeleteSiteUseCase";
@@ -47,12 +53,30 @@ class SiteController {
     const { id_c } = request.params;
     const contestnumber = Number(id_c);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
 
-      const all = await listSitesUseCase.execute({ contestnumber });
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 || 
+          (userPayload.usertype != UserType.SYSTEM &&
+          userPayload.contestnumber != contestnumber)) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
 
-      return response.status(HttpStatus.SUCCESS).json(all);
+      const all = await listSitesUseCase.execute({
+        contestnumber,
+        currUser: userPayload,
+      });
+
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(all);
     } catch (error) {
       next(error);
     }
@@ -71,13 +95,34 @@ class SiteController {
     const sitenumber = Number(id_s);
     const contestnumber = Number(id_c);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
       idValidator.isSiteId(sitenumber);
 
-      const site = await getSiteUseCase.execute({ sitenumber, contestnumber });
+      // check whether it's the fake contest or the contest/site is not the
+      // one the user is currently registered in
+      if (contestnumber === 0 || 
+          (userPayload.usertype != UserType.SYSTEM &&
+           userPayload.contestnumber != contestnumber) ||
+          (userPayload.usertype != UserType.SYSTEM &&
+           userPayload.usertype != UserType.ADMIN &&
+           userPayload.usersitenumber != sitenumber)) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+  
+      const site = await getSiteUseCase.execute({
+        contestnumber,
+        sitenumber,
+      });
 
-      return response.status(HttpStatus.SUCCESS).json(site);
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(site);
     } catch (error) {
       next(error);
     }
@@ -238,23 +283,51 @@ class SiteController {
   ): Promise<Response | undefined> {
     const deleteSiteUseCase = container.resolve(DeleteSiteUseCase);
     const idValidator = container.resolve(IdValidator);
+    const contestValidator = container.resolve(ContestValidator);
 
-    const { id_s } = request.params;
     const { id_c } = request.params;
-    const sitenumber = Number(id_s);
+    const { id_s } = request.params;
     const contestnumber = Number(id_c);
+    const sitenumber = Number(id_s);
+
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
 
     try {
       idValidator.isContestId(contestnumber);
       idValidator.isSiteId(sitenumber);
 
-      await deleteSiteUseCase.execute({ sitenumber, contestnumber });
+      // check whether it's the fake contest or the contest/site is not the one
+      // the user is currently registered in or user of admin type is not
+      // associated with the contest main site or the site to delete is the
+      // same the user is currently registered in
+      const c = await contestValidator.exists(contestnumber);
+      if (contestnumber === 0 ||
+          (userPayload.usertype != UserType.SYSTEM && 
+           userPayload.contestnumber != contestnumber) ||
+          (userPayload.usertype == UserType.ADMIN &&
+           userPayload.usersitenumber != c.contestmainsite) ||
+          (userPayload.usertype == UserType.ADMIN &&
+           userPayload.usersitenumber == sitenumber) ) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
 
-      return response.status(HttpStatus.DELETED).json();
+      await deleteSiteUseCase.execute({
+        sitenumber,
+        contestnumber
+      });
+
+      return response
+        .status(HttpStatus.DELETED)
+        .json();
     } catch (error) {
       next(error);
     }
   }
 }
 
-export { SiteController };
+export {
+  SiteController
+};

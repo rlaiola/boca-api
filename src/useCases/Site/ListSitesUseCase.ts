@@ -26,8 +26,12 @@ import { ISitesRepository } from "../../repositories/ISitesRepository";
 
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
 
+import { AuthPayload } from "../../shared/definitions/AuthPayload";
+import { UserType } from "../../shared/definitions/UserType";
+
 interface IRequest {
   contestnumber: number;
+  currUser: AuthPayload;
 }
 
 @injectable()
@@ -41,10 +45,30 @@ class ListSitesUseCase {
     this.contestValidator = container.resolve(ContestValidator);
   }
 
-  async execute({ contestnumber }: IRequest): Promise<Site[]> {
+  async execute({
+    contestnumber,
+    currUser,
+  }: IRequest): Promise<Site[]> {
     await this.contestValidator.exists(contestnumber);
-    return await this.sitesRepository.list(contestnumber);
+
+    const all = await this.sitesRepository.list(contestnumber);
+    // filter site by user
+    const allowed = all.filter(function(s) {
+      // no one sees a site of the fake contest
+      if (s.contestnumber == 0) return false;
+      // user of system and admin types can see all sites of a contest
+      else if (currUser.usertype == UserType.SYSTEM ||
+               currUser.usertype == UserType.ADMIN) return true;
+      // other user types see only the site they are registered in
+      else if (s.sitenumber === currUser.usersitenumber) return true;
+      // otherwise, they dont see it
+      else return false;
+    });
+    
+    return allowed;
   }
 }
 
-export { ListSitesUseCase };
+export {
+  ListSitesUseCase
+};
