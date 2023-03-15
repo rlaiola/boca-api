@@ -35,7 +35,7 @@ import { ApiError } from "../../errors/ApiError";
 import { CreateLangUseCase } from "./CreateLangUseCase";
 import { DeleteLangUseCase } from "./DeleteLangUseCase";
 import { GetLangUseCase } from "./GetLangUseCase";
-import { ListLangUseCase } from "./ListLangUseCase";
+import { ListLangUseCase } from "./ListLangsUseCase";
 import { UpdateLangUseCase } from "./UpdateLangUseCase";
 
 class LangController {
