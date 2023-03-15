@@ -54,7 +54,9 @@ class ContestController {
     const userPayload: AuthPayload = request.body.authtoken;
 
     try {
-      const all = await listContestsUseCase.execute({ currUser: userPayload });
+      const all = await listContestsUseCase.execute({
+        currUser: userPayload
+      });
       return response
         .status(HttpStatus.SUCCESS)
         .json(all);
