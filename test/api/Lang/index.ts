@@ -18,7 +18,7 @@
 //
 //========================================================================
 
-import "./ListLang"
+import "./ListLangs"
 import "./CreateLang"
 import "./GetLang"
 import "./UpdateLang"
