@@ -115,7 +115,7 @@ describe("List languages testing scenarios", () => {
       expect(response.body).to.have.own.property("message");
     });
 
-    it("User of system type has no permission (Contest Alpha)", async () => {
+    it("User of system type has no permission (Alpha)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -133,7 +133,7 @@ describe("List languages testing scenarios", () => {
       expect(response.body).to.have.own.property("message");
     });
 
-    it("User of system type has no permission (Contest Beta)", async () => {
+    it("User of system type has no permission (Beta)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -151,7 +151,7 @@ describe("List languages testing scenarios", () => {
       expect(response.body).to.have.own.property("message");
     });
 
-    it("User of admin type has no permission (Contest Beta)", async () => {
+    it("User of admin type has no permission (Beta)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -169,7 +169,7 @@ describe("List languages testing scenarios", () => {
       expect(response.body).to.have.own.property("message");
     });
 
-    it("User of team type has no permission (Contest Beta)", async () => {
+    it("User of team type has no permission (Beta)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -187,7 +187,7 @@ describe("List languages testing scenarios", () => {
       expect(response.body).to.have.own.property("message");
     });
 
-    it("User of judge type has no permission (Contest Beta)", async () => {
+    it("User of judge type has no permission (Beta)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -209,7 +209,7 @@ describe("List languages testing scenarios", () => {
 
   describe("Positive testing", () => {
 
-    it("User of admin type has permission (Contest Alpha)", async () => {
+    it("User of admin type has permission (Alpha)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -244,7 +244,7 @@ describe("List languages testing scenarios", () => {
       expect(langPython.langextension).to.deep.equal("py3");
     });
 
-    it("User of team type has permission (Contest Alpha)", async () => {
+    it("User of team type has permission (Alpha)", async () => {
       const token = await getToken(
         pass,
         salt,
@@ -279,7 +279,7 @@ describe("List languages testing scenarios", () => {
       expect(langPython.langextension).to.deep.equal("py3");
     });
 
-    it("User of judge type has permission (Contest Alpha)", async () => {
+    it("User of judge type has permission (Alpha)", async () => {
       const token = await getToken(
         pass,
         salt,
