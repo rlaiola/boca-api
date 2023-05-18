@@ -20,13 +20,12 @@
 
 import { injectable } from "tsyringe";
 
-import { RequestValidator } from "./RequestValidator";
-
 import {
   createLangRequiredProperties,
   updateLangRequiredProperties,
 } from "../../../entities/Lang";
 
+import { RequestValidator } from "./RequestValidator";
 
 @injectable()
 class LangRequestValidator extends RequestValidator {
