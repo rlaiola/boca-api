@@ -24,8 +24,8 @@ import {
   IsPositive,
   Max,
   IsString,
-  MaxLength,
   MinLength,
+  MaxLength,
 } from "class-validator";
 
 @Entity("langtable")
