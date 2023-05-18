@@ -24,10 +24,13 @@ import { NextFunction, Request, Response } from "express";
 import { container } from "tsyringe";
 
 import { HttpStatus } from "../../shared/definitions/HttpStatusCodes";
+import { AuthPayload } from "../../shared/definitions/AuthPayload";
 
 import { AnswerRequestValidator } from "../../shared/validation/requests/AnswerRequestValidator";
 
 import IdValidator from "../../shared/validation/utils/IdValidator";
+
+import { ApiError } from "../../errors/ApiError";
 
 import { CreateAnswerUseCase } from "./CreateAnswerUseCase";
 import { DeleteAnswerUseCase } from "./DeleteAnswerUseCase";
@@ -47,12 +50,79 @@ class AnswerController {
     const { id_c } = request.params;
     const contestnumber = Number(id_c);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
 
-      const all = await listAnswersUseCase.execute({ contestnumber });
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+          userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
 
-      return response.status(HttpStatus.SUCCESS).json(all);
+      const all = await listAnswersUseCase.execute({
+        contestnumber
+      });
+
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(all);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async create(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> {
+    const createAnswerUseCase = container.resolve(CreateAnswerUseCase);
+    const idValidator = container.resolve(IdValidator);
+    const answerRequestValidator = container.resolve(AnswerRequestValidator);
+
+    const { id_c } = request.params;
+    const contestnumber = Number(id_c);
+
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+    
+    const {
+      answernumber,
+      runanswer,
+      yes
+    } = request.body;
+
+    try {
+      idValidator.isContestId(contestnumber);
+      answerRequestValidator.hasRequiredCreateProperties(request.body);
+
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+          userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+
+      const answer = await createAnswerUseCase.execute({
+        contestnumber,
+        answernumber,
+        runanswer,
+        yes,
+      });
+
+      return response
+        .setHeader('Content-Location', 
+          `/api/contest/${answer.contestnumber}/language/${answer.answernumber}`)
+        .status(HttpStatus.CREATED)
+        .json(answer);
     } catch (error) {
       next(error);
     }
@@ -71,48 +141,31 @@ class AnswerController {
     const contestnumber = Number(id_c);
     const answernumber = Number(id_a);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
       idValidator.isAnswerId(answernumber);
 
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+          userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
+
+      // otherwise, retrieve answer
       const answer = await getAnswerUseCase.execute({
         contestnumber,
         answernumber,
       });
 
-      return response.status(HttpStatus.SUCCESS).json(answer);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async create(
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> {
-    const createAnswerUseCase = container.resolve(CreateAnswerUseCase);
-    const idValidator = container.resolve(IdValidator);
-    const answerRequestValidator = container.resolve(AnswerRequestValidator);
-
-    const { id_c } = request.params;
-    const contestnumber = Number(id_c);
-
-    const { answernumber, fake, runanswer, yes } = request.body;
-
-    try {
-      idValidator.isContestId(contestnumber);
-      answerRequestValidator.hasRequiredCreateProperties(request.body);
-
-      const contest = await createAnswerUseCase.execute({
-        contestnumber,
-        answernumber,
-        fake,
-        runanswer,
-        yes,
-      });
-
-      return response.status(HttpStatus.CREATED).json(contest);
+      return response
+        .status(HttpStatus.SUCCESS)
+        .json(answer);
     } catch (error) {
       next(error);
     }
@@ -125,29 +178,43 @@ class AnswerController {
   ): Promise<Response | undefined> {
     const updateAnswerUseCase = container.resolve(UpdateAnswerUseCase);
     const idValidator = container.resolve(IdValidator);
-    const answerRequestValidator = container.resolve(AnswerRequestValidator);
 
     const { id_c } = request.params;
     const { id_a } = request.params;
     const contestnumber = Number(id_c);
     const answernumber = Number(id_a);
 
-    const { fake, runanswer, yes } = request.body;
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
+    const {
+      runanswer,
+      yes
+    } = request.body;
 
     try {
       idValidator.isContestId(contestnumber);
       idValidator.isAnswerId(answernumber);
-      answerRequestValidator.hasRequiredUpdateProperties(request.body);
+
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+        userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
 
       const updatedAnswer = await updateAnswerUseCase.execute({
         contestnumber,
         answernumber,
-        fake,
         runanswer,
         yes,
       });
 
-      return response.status(HttpStatus.UPDATED).json(updatedAnswer);
+      return response
+        .status(HttpStatus.UPDATED)
+        .json(updatedAnswer);
     } catch (error) {
       next(error);
     }
@@ -166,17 +233,36 @@ class AnswerController {
     const contestnumber = Number(id_c);
     const answernumber = Number(id_a);
 
+    // current user
+    const userPayload: AuthPayload = request.body.authtoken;
+
     try {
       idValidator.isContestId(contestnumber);
       idValidator.isAnswerId(answernumber);
 
-      await deleteAnswerUseCase.execute({ contestnumber, answernumber });
+      // check whether it's the fake contest or the contest is not the one
+      // the user is currently registered in
+      if (contestnumber === 0 ||
+        userPayload.contestnumber != contestnumber) {
+        throw ApiError.forbidden(
+          "Authenticated user is unauthorized to use this endpoint"
+        );
+      }
 
-      return response.status(HttpStatus.DELETED).json();
+      await deleteAnswerUseCase.execute({
+        contestnumber, 
+        answernumber
+      });
+
+      return response
+        .status(HttpStatus.DELETED)
+        .json();
     } catch (error) {
       next(error);
     }
   }
 }
 
-export { AnswerController };
+export {
+  AnswerController
+};

@@ -24,15 +24,14 @@ import { Answer } from "../../entities/Answer";
 
 import { IAnswersRepository } from "../../repositories/IAnswersRepository";
 
-import AnswerValidator from "../../shared/validation/entities/AnswerValidator";
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
+import AnswerValidator from "../../shared/validation/entities/AnswerValidator";
 
 interface IRequest {
   contestnumber: number;
   answernumber: number;
   runanswer: string;
   yes: boolean;
-  fake: boolean;
 }
 
 @injectable()
@@ -49,27 +48,26 @@ class UpdateAnswerUseCase {
   }
 
   async execute({
-    answernumber,
     contestnumber,
-    fake,
+    answernumber,
     runanswer,
     yes,
   }: IRequest): Promise<Answer> {
     await this.contestValidator.exists(contestnumber);
-    await this.answerValidator.exists(contestnumber, answernumber);
+    const old = await this.answerValidator.exists(contestnumber, answernumber);
 
-    const answer = new Answer(
+    const latest = new Answer(
       contestnumber,
       answernumber,
-      runanswer,
-      yes,
-      fake
+      runanswer !== undefined ? runanswer : old.runanswer,
+      yes !== undefined ? yes : old.yes
     );
 
-    await this.answerValidator.isValid(answer);
-
-    return await this.answersRepository.update({ ...answer });
+    await this.answerValidator.isValid(latest);
+    return await this.answersRepository.update({ ...latest });
   }
 }
 
-export { UpdateAnswerUseCase };
+export {
+  UpdateAnswerUseCase
+};

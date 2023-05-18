@@ -24,15 +24,15 @@ import { Lang } from "../../../entities/Lang";
 
 import { ApiError } from "../../../errors/ApiError";
 
-import { ILangRepository } from "../../../repositories/ILangRepository";
+import { ILangsRepository } from "../../../repositories/ILangsRepository";
 
 import EntityValidator from "./EntityValidator";
 
 @injectable()
 class LangValidator extends EntityValidator<Lang> {
   constructor(
-    @inject("LangRepository")
-    private langRepository: ILangRepository
+    @inject("LangsRepository")
+    private langRepository: ILangsRepository
   ) {
     super();
   }

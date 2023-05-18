@@ -32,13 +32,13 @@ import EntityValidator from "./EntityValidator";
 class AnswerValidator extends EntityValidator<Answer> {
   constructor(
     @inject("AnswersRepository")
-    private answersRepository: IAnswersRepository
+    private answerRepository: IAnswersRepository
   ) {
     super();
   }
 
   async exists(contestnumber: number, answernumber: number): Promise<Answer> {
-    const existingAnswer = await this.answersRepository.getById(
+    const existingAnswer = await this.answerRepository.getById(
       contestnumber,
       answernumber
     );
@@ -49,6 +49,20 @@ class AnswerValidator extends EntityValidator<Answer> {
 
     return existingAnswer;
   }
+
+  async notexists(contestnumber: number, answernumber: number): Promise<undefined> {
+    const existingLang = await this.answerRepository.getById(
+      contestnumber,
+      answernumber
+    );
+
+    if (existingLang) {
+      throw ApiError.alreadyExists("Answer already exists");
+    }
+
+    return undefined;
+  }
+
 }
 
 export default AnswerValidator;

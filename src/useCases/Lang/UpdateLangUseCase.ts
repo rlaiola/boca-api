@@ -22,7 +22,7 @@ import { container, inject, injectable } from "tsyringe";
 
 import { Lang } from "../../entities/Lang";
 
-import { ILangRepository } from "../../repositories/ILangRepository";
+import { ILangsRepository } from "../../repositories/ILangsRepository";
 
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
 import LangValidator from "../../shared/validation/entities/LangValidator";
@@ -40,8 +40,8 @@ class UpdateLangUseCase {
   private langValidator: LangValidator;
 
   constructor(
-    @inject("LangRepository")
-    private langRepository: ILangRepository
+    @inject("LangsRepository")
+    private langsRepository: ILangsRepository
   ) {
     this.contestValidator = container.resolve(ContestValidator);
     this.langValidator = container.resolve(LangValidator);
@@ -64,7 +64,7 @@ class UpdateLangUseCase {
     );
 
     await this.langValidator.isValid(latest);
-    return await this.langRepository.update({ ...latest });
+    return await this.langsRepository.update({ ...latest });
   }
 }
 

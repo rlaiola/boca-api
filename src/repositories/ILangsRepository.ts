@@ -38,7 +38,7 @@ interface ILastIdResult {
   id: number;
 }
 
-interface ILangRepository {
+interface ILangsRepository {
   list(contestnumber: number): Promise<Lang[]>;
   create(lang: ICreateLangDTO): Promise<Lang>;
   getById(contestnumber: number, langnumber: number): Promise<Lang | undefined>;
@@ -48,7 +48,7 @@ interface ILangRepository {
 }
 
 export {
-  ILangRepository,
+  ILangsRepository,
   ICreateLangDTO,
   ILastIdResult,
   IUpdateLangDTO,

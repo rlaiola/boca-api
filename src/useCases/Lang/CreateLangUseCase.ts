@@ -22,7 +22,7 @@ import { container, inject, injectable } from "tsyringe";
 
 import { Lang } from "../../entities/Lang";
 
-import { ILangRepository } from "../../repositories/ILangRepository";
+import { ILangsRepository } from "../../repositories/ILangsRepository";
 
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
 import LangValidator from "../../shared/validation/entities/LangValidator";
@@ -38,16 +38,16 @@ interface IRequest {
 
 @injectable()
 class CreateLangUseCase {
-  private contestValidator: ContestValidator;
   private idValidator: IdValidator;
+  private contestValidator: ContestValidator;
   private langValidator: LangValidator;
 
   constructor(
-    @inject("LangRepository")
-    private langRepository: ILangRepository
+    @inject("LangsRepository")
+    private langsRepository: ILangsRepository
   ) {
-    this.contestValidator = container.resolve(ContestValidator);
     this.idValidator = container.resolve(IdValidator);
+    this.contestValidator = container.resolve(ContestValidator);
     this.langValidator = container.resolve(LangValidator);
   }
 
@@ -60,7 +60,7 @@ class CreateLangUseCase {
     await this.contestValidator.exists(contestnumber);
 
     if (langnumber === undefined) {
-      let lastId = await this.langRepository.getLastId(contestnumber);
+      let lastId = await this.langsRepository.getLastId(contestnumber);
       lastId = lastId !== undefined ? lastId : 0;
       langnumber = lastId + 1;
     }
@@ -82,7 +82,7 @@ class CreateLangUseCase {
     );
 
     await this.langValidator.isValid(lang);
-    return await this.langRepository.create({ ...lang });
+    return await this.langsRepository.create({ ...lang });
   }
 }
 

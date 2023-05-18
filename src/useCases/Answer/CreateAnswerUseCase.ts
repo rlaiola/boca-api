@@ -20,25 +20,25 @@
 
 import { container, inject, injectable } from "tsyringe";
 
-import { ApiError } from "../../errors/ApiError";
-
 import { Answer } from "../../entities/Answer";
 
 import { IAnswersRepository } from "../../repositories/IAnswersRepository";
 
-import AnswerValidator from "../../shared/validation/entities/AnswerValidator";
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
+import AnswerValidator from "../../shared/validation/entities/AnswerValidator";
+
+import IdValidator from "../../shared/validation/utils/IdValidator";
 
 interface IRequest {
   contestnumber: number;
   answernumber: number;
   runanswer: string;
   yes: boolean;
-  fake: boolean;
 }
 
 @injectable()
 class CreateAnswerUseCase {
+  private idValidator: IdValidator;
   private contestValidator: ContestValidator;
   private answerValidator: AnswerValidator;
 
@@ -46,6 +46,7 @@ class CreateAnswerUseCase {
     @inject("AnswersRepository")
     private answersRepository: IAnswersRepository
   ) {
+    this.idValidator = container.resolve(IdValidator);
     this.contestValidator = container.resolve(ContestValidator);
     this.answerValidator = container.resolve(AnswerValidator);
   }
@@ -53,32 +54,38 @@ class CreateAnswerUseCase {
   async execute({
     contestnumber,
     answernumber,
-    fake,
     runanswer,
     yes,
   }: IRequest): Promise<Answer> {
     await this.contestValidator.exists(contestnumber);
 
-    const existingAnswer = await this.answersRepository.getById(
-      contestnumber,
-      answernumber
-    );
-    if (existingAnswer !== undefined) {
-      throw ApiError.alreadyExists("Answer already exists for this contest");
+    if (answernumber === undefined) {
+      let lastId = await this.answersRepository.getLastId(contestnumber);
+      lastId = lastId !== undefined ? lastId : 0;
+      answernumber = lastId + 1;
+    }
+    else {
+      // check if it is a valid id
+      this.idValidator.isAnswerId(answernumber);
+      // and it has not been assigned yet
+      await this.answerValidator.notexists(
+        contestnumber, 
+        answernumber
+      );
     }
 
     const answer = new Answer(
       contestnumber,
       answernumber,
       runanswer,
-      yes,
-      fake
+      yes
     );
 
     await this.answerValidator.isValid(answer);
-
     return await this.answersRepository.create({ ...answer });
   }
 }
 
-export { CreateAnswerUseCase };
+export {
+  CreateAnswerUseCase
+};

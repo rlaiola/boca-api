@@ -25,13 +25,13 @@ import { AppDataSource } from "../../database";
 import { Lang } from "../../entities/Lang";
 
 import {
-  ILangRepository,
+  ILangsRepository,
   ICreateLangDTO,
   ILastIdResult,
   IUpdateLangDTO,
-} from "../ILangRepository";
+} from "../ILangsRepository";
 
-class LangRepository implements ILangRepository {
+class LangsRepository implements ILangsRepository {
   private repository: Repository<Lang>;
 
   constructor() {
@@ -113,5 +113,5 @@ class LangRepository implements ILangRepository {
 }
 
 export {
-  LangRepository
+  LangsRepository
 };

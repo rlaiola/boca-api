@@ -22,7 +22,7 @@ import { container, inject, injectable } from "tsyringe";
 
 import { Lang } from "../../entities/Lang";
 
-import { ILangRepository } from "../../repositories/ILangRepository";
+import { ILangsRepository } from "../../repositories/ILangsRepository";
 
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
 
@@ -35,8 +35,8 @@ class ListLangUseCase {
   private contestValidator: ContestValidator;
 
   constructor(
-    @inject("LangRepository")
-    private langRepository: ILangRepository
+    @inject("LangsRepository")
+    private langsRepository: ILangsRepository
   ) {
     this.contestValidator = container.resolve(ContestValidator);
   }
@@ -45,7 +45,7 @@ class ListLangUseCase {
     contestnumber
   }: IRequest): Promise<Lang[]> {
     await this.contestValidator.exists(contestnumber);
-    return await this.langRepository.list(contestnumber);
+    return await this.langsRepository.list(contestnumber);
   }
 }
 

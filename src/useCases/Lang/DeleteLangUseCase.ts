@@ -20,7 +20,7 @@
 
 import { container, inject, injectable } from "tsyringe";
 
-import { ILangRepository } from "../../repositories/ILangRepository";
+import { ILangsRepository } from "../../repositories/ILangsRepository";
 
 import ContestValidator from "../../shared/validation/entities/ContestValidator";
 import LangValidator from "../../shared/validation/entities/LangValidator";
@@ -36,8 +36,8 @@ class DeleteLangUseCase {
   private langValidator: LangValidator;
 
   constructor(
-    @inject("LangRepository")
-    private langRepository: ILangRepository
+    @inject("LangsRepository")
+    private langsRepository: ILangsRepository
   ) {
     this.contestValidator = container.resolve(ContestValidator);
     this.langValidator = container.resolve(LangValidator);
@@ -49,7 +49,7 @@ class DeleteLangUseCase {
   }: IRequest): Promise<void> {
     await this.contestValidator.exists(contestnumber);
     await this.langValidator.exists(contestnumber, langnumber);
-    await this.langRepository.delete(contestnumber, langnumber);
+    await this.langsRepository.delete(contestnumber, langnumber);
   }
 }
 
