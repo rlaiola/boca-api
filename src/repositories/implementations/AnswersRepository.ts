@@ -40,8 +40,19 @@ class AnswersRepository implements IAnswersRepository {
 
   async list(contestnumber: number): Promise<Answer[]> {
     return await this.repository.find({
-      where: { contestnumber: contestnumber },
+      where: { 
+        contestnumber: contestnumber
+      },
+      order: {
+        answernumber: "ASC"
+      }
     });
+  }
+
+  async create(createObject: ICreateAnswerDTO): Promise<Answer> {
+    const answer = this.repository.create(createObject);
+    await this.repository.save(answer);
+    return answer;
   }
 
   async getById(
@@ -68,12 +79,6 @@ class AnswersRepository implements IAnswersRepository {
     return lastIdResult !== undefined ? lastIdResult.id : undefined;
   }
 
-  async create(createObject: ICreateAnswerDTO): Promise<Answer> {
-    const answer = this.repository.create(createObject);
-    await this.repository.save(answer);
-    return answer;
-  }
-
   async update(updateObject: IUpdateAnswerDTO): Promise<Answer> {
     const result = await this.repository
       .createQueryBuilder()
@@ -97,10 +102,16 @@ class AnswersRepository implements IAnswersRepository {
       .createQueryBuilder()
       .delete()
       .from(Answer)
-      .where("contestnumber = :contestnumber", { contestnumber: contestnumber })
-      .andWhere("answernumber = :answernumber", { answernumber: answernumber })
+      .where("contestnumber = :contestnumber", {
+        contestnumber: contestnumber
+      })
+      .andWhere("answernumber = :answernumber", {
+        answernumber: answernumber
+      })
       .execute();
   }
 }
 
-export { AnswersRepository };
+export {
+  AnswersRepository
+};
