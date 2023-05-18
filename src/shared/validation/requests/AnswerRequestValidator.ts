@@ -20,20 +20,21 @@
 
 import { injectable } from "tsyringe";
 
+import {
+  createAnswerRequiredProperties,
+  updateAnswerRequiredProperties,
+} from "../../../entities/Answer";
+
 import { RequestValidator } from "./RequestValidator";
-
-const createRequiredProperties = ["fake", "runanswer", "yes", "answernumber"];
-
-const updateRequiredProperties = ["fake", "runanswer", "yes", "answernumber"];
 
 @injectable()
 class AnswerRequestValidator extends RequestValidator {
   hasRequiredCreateProperties(request: object): void {
-    this.hasRequiredProperties(request, createRequiredProperties);
+    this.hasRequiredProperties(request, createAnswerRequiredProperties);
   }
 
   hasRequiredUpdateProperties(request: object): void {
-    this.hasRequiredProperties(request, updateRequiredProperties);
+    this.hasRequiredProperties(request, updateAnswerRequiredProperties);
   }
 }
 
